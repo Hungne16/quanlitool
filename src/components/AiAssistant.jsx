@@ -32,7 +32,7 @@ export default function AiAssistant() {
 
     try {
       // Gather tools context
-      const tools = getTools();
+      const tools = await getTools();
       const toolsContext = tools.map(t => `- **${t.title}** (${t.category}): ${t.description} [${t.url}]`).join('\n');
 
       let replyText = null;

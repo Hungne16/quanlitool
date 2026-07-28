@@ -1,7 +1,6 @@
-const STORAGE_KEY = 'tool_manager_data_v2';
-const CATEGORY_STORAGE_KEY = 'tool_manager_categories_v2';
+import { collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db } from "../config/firebase";
 
-// Default categories in Vietnamese
 export const DEFAULT_CATEGORIES = [
   'AI & Machine Learning',
   'Lập trình',
@@ -11,81 +10,129 @@ export const DEFAULT_CATEGORIES = [
   'Khác'
 ];
 
-export const getCategories = () => {
-  const data = localStorage.getItem(CATEGORY_STORAGE_KEY);
-  return data ? JSON.parse(data) : DEFAULT_CATEGORIES;
-};
+// --- CATEGORIES ---
 
-export const saveCategories = (categories) => {
-  localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
-};
-
-export const getTools = () => {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
-};
-
-export const saveTool = (tool) => {
-  const tools = getTools();
-  const newTool = {
-    ...tool,
-    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-    createdAt: new Date().toISOString(),
-    isFavorite: false
-  };
-  tools.push(newTool);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tools));
-  return newTool;
-};
-
-export const updateTool = (id, updates) => {
-  const tools = getTools();
-  const updatedTools = tools.map(t => t.id === id ? { ...t, ...updates } : t);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTools));
-  return updatedTools;
-};
-
-export const deleteTool = (id) => {
-  const tools = getTools();
-  const updatedTools = tools.filter(t => t.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTools));
-  return updatedTools;
-};
-
-export const toggleFavorite = (id) => {
-  const tools = getTools();
-  const updatedTools = tools.map(t => {
-    if (t.id === id) {
-      return { ...t, isFavorite: !t.isFavorite };
+export const getCategories = async () => {
+  try {
+    const docRef = doc(db, "settings", "categories");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data().list;
+    } else {
+      await saveCategories(DEFAULT_CATEGORIES);
+      return DEFAULT_CATEGORIES;
     }
-    return t;
-  });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTools));
-  return updatedTools;
+  } catch (error) {
+    console.error("Error getting categories:", error);
+    return DEFAULT_CATEGORIES;
+  }
 };
 
-export const exportData = () => {
-  const data = {
-    tools: getTools(),
-    categories: getCategories()
-  };
+export const saveCategories = async (categories) => {
+  try {
+    const docRef = doc(db, "settings", "categories");
+    await setDoc(docRef, { list: categories });
+  } catch (error) {
+    console.error("Error saving categories:", error);
+  }
+};
+
+// --- TOOLS ---
+
+export const getTools = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "tools"));
+    const tools = [];
+    querySnapshot.forEach((doc) => {
+      tools.push({ id: doc.id, ...doc.data() });
+    });
+    return tools;
+  } catch (error) {
+    console.error("Error getting tools:", error);
+    return [];
+  }
+};
+
+export const saveTool = async (tool) => {
+  try {
+    const newTool = {
+      ...tool,
+      createdAt: new Date().toISOString(),
+      isFavorite: false
+    };
+    const docRef = await addDoc(collection(db, "tools"), newTool);
+    return { id: docRef.id, ...newTool };
+  } catch (error) {
+    console.error("Error saving tool:", error);
+    throw error;
+  }
+};
+
+export const updateTool = async (id, updates) => {
+  try {
+    const docRef = doc(db, "tools", id);
+    await updateDoc(docRef, updates);
+  } catch (error) {
+    console.error("Error updating tool:", error);
+  }
+};
+
+export const deleteTool = async (id) => {
+  try {
+    const docRef = doc(db, "tools", id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error("Error deleting tool:", error);
+  }
+};
+
+export const toggleFavorite = async (id, currentFavoriteStatus) => {
+  try {
+    const docRef = doc(db, "tools", id);
+    await updateDoc(docRef, { isFavorite: !currentFavoriteStatus });
+  } catch (error) {
+    console.error("Error toggling favorite:", error);
+  }
+};
+
+// --- IMPORT/EXPORT (Using JSON) ---
+
+export const exportData = async () => {
+  const tools = await getTools();
+  const categories = await getCategories();
+  
+  const data = { tools, categories };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `quanlitool_backup_${new Date().toISOString().split('T')[0]}.json`;
+  a.download = `quanlitool_backup_firestore_${new Date().toISOString().split('T')[0]}.json`;
   a.click();
   URL.revokeObjectURL(url);
 };
 
-export const importData = (jsonData) => {
+export const importData = async (jsonData) => {
   try {
     const data = JSON.parse(jsonData);
-    if (data.tools && Array.isArray(data.tools)) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.tools));
-    }
+    
+    // Import Categories
     if (data.categories && Array.isArray(data.categories)) {
-      localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(data.categories));
+      await saveCategories(data.categories);
+    }
+
+    // Import Tools (delete old ones and add new)
+    if (data.tools && Array.isArray(data.tools)) {
+      // First, get current tools and delete them
+      const currentTools = await getTools();
+      for (const t of currentTools) {
+        await deleteTool(t.id);
+      }
+      
+      // Add imported tools
+      for (const t of data.tools) {
+        const { id, ...toolData } = t; // Exclude old ID to let Firestore auto-generate
+        await addDoc(collection(db, "tools"), toolData);
+      }
     }
     return true;
   } catch (error) {
@@ -94,20 +141,17 @@ export const importData = (jsonData) => {
   }
 };
 
-// V2 Initial Data
-const initialData = [
-  // AI & Machine Learning
-  { id: 'ai-1', title: 'ChatGPT', description: 'Trợ lý AI thông minh từ OpenAI.', url: 'https://chat.openai.com', category: 'AI & Machine Learning', createdAt: new Date().toISOString(), isFavorite: true },
-  { id: 'dev-1', title: 'GitHub', description: 'Nền tảng lưu trữ mã nguồn lớn nhất.', url: 'https://github.com', category: 'Lập trình', createdAt: new Date().toISOString(), isFavorite: true },
-];
-
-export const initStorage = () => {
-  const data = localStorage.getItem(STORAGE_KEY);
-  if (!data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
-  }
-  const cats = localStorage.getItem(CATEGORY_STORAGE_KEY);
-  if (!cats) {
-    localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(DEFAULT_CATEGORIES));
+// --- INITIALIZATION ---
+export const initStorage = async () => {
+  // Only add initial data if the tools collection is completely empty
+  const tools = await getTools();
+  if (tools.length === 0) {
+    const initialData = [
+      { title: 'ChatGPT', description: 'Trợ lý AI thông minh từ OpenAI.', url: 'https://chat.openai.com', category: 'AI & Machine Learning', createdAt: new Date().toISOString(), isFavorite: true },
+      { title: 'GitHub', description: 'Nền tảng lưu trữ mã nguồn lớn nhất.', url: 'https://github.com', category: 'Lập trình', createdAt: new Date().toISOString(), isFavorite: true },
+    ];
+    for (const t of initialData) {
+      await addDoc(collection(db, "tools"), t);
+    }
   }
 };

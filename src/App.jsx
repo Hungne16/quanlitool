@@ -16,30 +16,35 @@ function App() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   useEffect(() => {
-    initStorage();
-    refreshData();
+    const initialize = async () => {
+      await initStorage();
+      await refreshData();
+    };
+    initialize();
   }, []);
 
-  const refreshData = () => {
-    setTools(getTools());
-    setCategories(getCategories());
+  const refreshData = async () => {
+    const fetchedTools = await getTools();
+    const fetchedCategories = await getCategories();
+    setTools(fetchedTools);
+    setCategories(fetchedCategories);
   };
 
-  const handleAddTool = (newTool) => {
-    saveTool(newTool);
-    setTools(getTools()); // Refresh from storage
+  const handleAddTool = async (newTool) => {
+    await saveTool(newTool);
+    await refreshData();
   };
 
-  const handleDeleteTool = (id) => {
+  const handleDeleteTool = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa công cụ này?')) {
-      deleteTool(id);
-      setTools(getTools());
+      await deleteTool(id);
+      await refreshData();
     }
   };
 
-  const handleToggleFavorite = (id) => {
-    toggleFavorite(id);
-    setTools(getTools());
+  const handleToggleFavorite = async (tool) => {
+    await toggleFavorite(tool.id, tool.isFavorite);
+    await refreshData();
   };
 
   const filteredTools = useMemo(() => {

@@ -30,7 +30,7 @@ export default function SettingsModal({ categories, isOpen, onClose, onDataChang
   };
 
   // --- Category Handlers ---
-  const handleAddCategory = (e) => {
+  const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!newCatName.trim()) return;
     if (localCategories.includes(newCatName.trim())) {
@@ -39,32 +39,32 @@ export default function SettingsModal({ categories, isOpen, onClose, onDataChang
     }
     const updated = [...localCategories, newCatName.trim()];
     setLocalCategories(updated);
-    saveCategories(updated);
+    await saveCategories(updated);
     setNewCatName('');
     onDataChanged();
   };
 
-  const handleDeleteCategory = (cat) => {
+  const handleDeleteCategory = async (cat) => {
     if (window.confirm(`Bạn có chắc muốn xóa danh mục "${cat}"? Các công cụ thuộc danh mục này vẫn sẽ được giữ lại.`)) {
       const updated = localCategories.filter(c => c !== cat);
       setLocalCategories(updated);
-      saveCategories(updated);
+      await saveCategories(updated);
       onDataChanged();
     }
   };
 
   // --- Data Handlers ---
-  const handleExport = () => {
-    exportData();
+  const handleExport = async () => {
+    await exportData();
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const success = importData(event.target.result);
+    reader.onload = async (event) => {
+      const success = await importData(event.target.result);
       if (success) {
         alert('Khôi phục dữ liệu thành công!');
         onDataChanged();

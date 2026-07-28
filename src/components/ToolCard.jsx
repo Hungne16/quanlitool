@@ -28,7 +28,7 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite }) {
           
           <div className="tool-actions" style={{ display: 'flex', gap: '0.25rem' }}>
             <button 
-              onClick={() => onToggleFavorite(tool.id)} 
+              onClick={() => onToggleFavorite(tool)} 
               className="btn-icon-delete opacity-0 group-hover-opacity-100"
               style={{ color: tool.isFavorite ? '#ef4444' : 'var(--text-muted)' }}
               title={tool.isFavorite ? "Bỏ yêu thích" : "Yêu thích"}

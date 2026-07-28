@@ -23,7 +23,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.title || !formData.url) return;
     
@@ -33,7 +33,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave }) {
       finalUrl = 'https://' + finalUrl;
     }
 
-    onSave({ ...formData, url: finalUrl });
+    await onSave({ ...formData, url: finalUrl });
     setFormData({ title: '', url: '', description: '', category: categories[0] || '', imageUrl: '' });
     onClose();
   };
