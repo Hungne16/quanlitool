@@ -25,42 +25,65 @@ export default function AiAssistant() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const apiKey = localStorage.getItem('gemini_api_key');
-    if (!apiKey) {
-      setMessages(prev => [...prev, 
-        { role: 'user', content: input },
-        { role: 'bot', content: 'Vui lòng nhập Gemini API Key trong phần **Cài đặt (⚙️)** ở menu bên trái để tôi có thể hoạt động nhé!' }
-      ]);
-      setInput('');
-      return;
-    }
-
     const userMsg = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setIsLoading(true);
 
     try {
-      const client = new GoogleGenAI({ apiKey });
-      
       // Gather tools context
       const tools = getTools();
       const toolsContext = tools.map(t => `- **${t.title}** (${t.category}): ${t.description} [${t.url}]`).join('\n');
 
-      const prompt = `Bạn là trợ lý AI quản lý công cụ. Dưới đây là danh sách các công cụ hiện có trong kho của người dùng:\n\n${toolsContext}\n\nNgười dùng đang hỏi: "${userMsg}".\n\nHãy gợi ý các công cụ phù hợp NHẤT từ danh sách trên để giúp họ giải quyết công việc. Khuyến khích giải thích ngắn gọn tại sao công cụ đó lại phù hợp. Nếu trong danh sách không có công cụ nào đáp ứng được, hãy cứ gợi ý một công cụ nổi tiếng bên ngoài nhưng nói rõ là nó chưa có trong kho. Hãy trả lời bằng tiếng Việt, định dạng markdown gọn gàng dễ đọc.`;
+      let replyText = null;
 
-      // Using the new Interactions API and gemini-3.6-flash model
-      const interaction = await client.interactions.create({
-          model: "gemini-3.6-flash",
-          input: prompt
-      });
+      // 1. Try hitting the Secure Serverless Backend first
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: userMsg, toolsContext })
+        });
 
-      const responseText = interaction.output_text;
+        if (response.ok) {
+          const data = await response.json();
+          replyText = data.reply;
+        } else if (response.status !== 401 && response.status !== 404) {
+          // It's a server error other than missing API key or not found endpoint
+          const errData = await response.json();
+          throw new Error(errData.error || `Server Error ${response.status}`);
+        }
+      } catch (backendError) {
+        console.warn('Backend call failed or not available, falling back to Local Storage key.', backendError);
+      }
 
-      setMessages(prev => [...prev, { role: 'bot', content: responseText }]);
+      // 2. Fallback to Local Client-side SDK (if backend didn't return a reply)
+      if (!replyText) {
+        const apiKey = localStorage.getItem('gemini_api_key');
+        if (!apiKey) {
+          setMessages(prev => [...prev, 
+            { role: 'bot', content: 'Vui lòng cung cấp **Gemini API Key** trong phần **Cài đặt hệ thống (⚙️)** (hoặc định cấu hình biến môi trường trên Server) để tôi có thể hoạt động nhé!' }
+          ]);
+          setIsLoading(false);
+          return;
+        }
+
+        const client = new GoogleGenAI({ apiKey });
+        const prompt = `Bạn là trợ lý AI quản lý công cụ. Dưới đây là danh sách các công cụ hiện có trong kho của người dùng:\n\n${toolsContext || 'Kho công cụ hiện trống.'}\n\nNgười dùng đang hỏi: "${userMsg}".\n\nHãy gợi ý các công cụ phù hợp NHẤT từ danh sách trên để giúp họ giải quyết công việc. Khuyến khích giải thích ngắn gọn tại sao công cụ đó lại phù hợp. Nếu trong danh sách không có công cụ nào đáp ứng được, hãy cứ gợi ý một công cụ nổi tiếng bên ngoài nhưng nói rõ là nó chưa có trong kho. Hãy trả lời bằng tiếng Việt, định dạng markdown gọn gàng dễ đọc.`;
+
+        const interaction = await client.interactions.create({
+            model: "gemini-3.6-flash",
+            input: prompt
+        });
+
+        replyText = interaction.output_text;
+      }
+
+      // Append final reply
+      setMessages(prev => [...prev, { role: 'bot', content: replyText }]);
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'bot', content: `Đã có lỗi xảy ra: **${error.message || error}**. \n\nBạn hãy kiểm tra lại API Key hoặc xem console (F12) để biết thêm chi tiết nhé!` }]);
+      setMessages(prev => [...prev, { role: 'bot', content: `Đã có lỗi xảy ra: **${error.message || error}**. \n\nBạn hãy kiểm tra lại API Key hoặc Log hệ thống để biết thêm chi tiết nhé!` }]);
     } finally {
       setIsLoading(false);
     }
