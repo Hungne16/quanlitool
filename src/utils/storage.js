@@ -57,8 +57,7 @@ export const saveTool = async (tool) => {
   try {
     const newTool = {
       ...tool,
-      createdAt: new Date().toISOString(),
-      isFavorite: false
+      createdAt: new Date().toISOString()
     };
     const docRef = await addDoc(collection(db, "tools"), newTool);
     return { id: docRef.id, ...newTool };
@@ -86,10 +85,24 @@ export const deleteTool = async (id) => {
   }
 };
 
-export const toggleFavorite = async (id, currentFavoriteStatus) => {
+export const toggleFavorite = async (uid, toolId, isCurrentlyFavorite) => {
+  if (!uid) {
+    console.error("Must be logged in to favorite tools");
+    return;
+  }
   try {
-    const docRef = doc(db, "tools", id);
-    await updateDoc(docRef, { isFavorite: !currentFavoriteStatus });
+    const userRef = doc(db, "users", uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      let favorites = data.favorites || [];
+      if (isCurrentlyFavorite) {
+        favorites = favorites.filter(id => id !== toolId);
+      } else {
+        favorites.push(toolId);
+      }
+      await updateDoc(userRef, { favorites });
+    }
   } catch (error) {
     console.error("Error toggling favorite:", error);
   }
