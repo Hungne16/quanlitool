@@ -135,15 +135,19 @@ export default function SettingsModal({ categories, isOpen, onClose, onDataChang
                     type="password" 
                     className="input-control" 
                     value={apiKey} 
-                    onChange={(e) => setApiKey(e.target.value)} 
+                    onChange={(e) => {
+                      setApiKey(e.target.value);
+                      localStorage.setItem('gemini_api_key', e.target.value.trim());
+                    }} 
                     placeholder="AIzaSy..." 
                   />
                   <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    Khóa API được lưu cục bộ an toàn. Lấy key miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{color: 'var(--accent-color)'}}>Google AI Studio</a>.
+                    Khóa API được lưu cục bộ an toàn và tự động lưu khi nhập. Lấy key miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{color: 'var(--accent-color)'}}>Google AI Studio</a>.
                   </p>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
-                  <button type="submit" className="btn btn-primary">Lưu API Key</button>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Đóng</button>
+                  <button type="submit" className="btn btn-primary">Xong</button>
                 </div>
               </form>
             </div>
