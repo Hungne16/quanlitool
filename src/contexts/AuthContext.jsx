@@ -39,16 +39,28 @@ export const AuthProvider = ({ children }) => {
               favorites: []
             };
             
-            await setDoc(userDocRef, newProfile);
+            try {
+              await setDoc(userDocRef, newProfile);
+            } catch (setErr) {
+              console.error("Failed to create user profile. Firebase rules are likely blocking writes.", setErr);
+              alert("Lỗi: Không thể lưu tài khoản vào cơ sở dữ liệu. Vui lòng kiểm tra lại Firestore Rules.");
+            }
           }
 
           profileUnsub = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
               setProfile(doc.data());
+            } else {
+              setProfile({ role: 'guest', status: 'active', favorites: [] });
             }
+          }, (err) => {
+             console.error("Lỗi đọc dữ liệu người dùng:", err);
+             alert("Lỗi: Không có quyền truy cập dữ liệu người dùng từ Firebase (Firestore Rules bị chặn).");
+             setProfile({ role: 'guest', status: 'active', favorites: [] });
           });
         } catch (err) {
           console.error("Error fetching user profile:", err);
+          alert("Lỗi kết nối hoặc không có quyền truy cập Firebase. Bạn đang ở chế độ Guest.");
           setProfile({ role: 'guest', status: 'active', favorites: [] });
         }
       } else {

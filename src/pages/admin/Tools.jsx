@@ -34,6 +34,9 @@ export default function Tools() {
       setTools(fetched);
     } catch (err) {
       console.error(err);
+      if (err.code === 'permission-denied') {
+        alert('Không có quyền lấy danh sách công cụ. Vui lòng kiểm tra Firebase Rules.');
+      }
     }
     setLoading(false);
   };
@@ -49,7 +52,7 @@ export default function Tools() {
       fetchTools();
     } catch (err) {
       console.error(err);
-      alert('Lỗi cập nhật');
+      alert('Lỗi cập nhật trạng thái. Có thể do Firebase Rules chặn quyền ghi.');
     }
   };
 
@@ -60,6 +63,7 @@ export default function Tools() {
       fetchTools();
     } catch (err) {
       console.error(err);
+      alert('Lỗi xóa công cụ. Có thể do Firebase Rules chặn quyền ghi.');
     }
   };
 
@@ -71,7 +75,7 @@ export default function Tools() {
       fetchTools();
     } catch (err) {
       console.error(err);
-      alert('Lỗi lưu');
+      alert('Lỗi lưu thay đổi. Có thể do Firebase Rules chặn quyền ghi.');
     }
   };
 

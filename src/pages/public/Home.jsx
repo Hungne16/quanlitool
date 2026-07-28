@@ -47,10 +47,17 @@ export default function Home() {
       status: isAdmin ? 'approved' : 'pending',
       submittedBy: user?.uid || 'guest'
     };
-    await saveTool(toolWithStatus);
-    await refreshData();
-    if (!isAdmin) {
-      alert("Công cụ của bạn đã được gửi và đang chờ Admin duyệt!");
+    try {
+      await saveTool(toolWithStatus);
+      await refreshData();
+      if (!isAdmin) {
+        alert("Công cụ của bạn đã được gửi và đang chờ Admin duyệt!");
+      } else {
+        alert("Thêm công cụ thành công!");
+      }
+    } catch (err) {
+      alert("Lỗi: Không thể thêm công cụ. Có thể do Firebase Rules chặn quyền ghi.");
+      console.error(err);
     }
   };
 
