@@ -5,19 +5,25 @@ import ToolGrid from './components/ToolGrid';
 import AddToolModal from './components/AddToolModal';
 import SettingsModal from './components/SettingsModal';
 import AiAssistant from './components/AiAssistant';
-import { getTools, saveTool, deleteTool, initStorage, DEFAULT_CATEGORIES } from './utils/storage';
+import { getTools, getCategories, saveTool, deleteTool, toggleFavorite, initStorage } from './utils/storage';
 
 function App() {
   const [tools, setTools] = useState([]);
-  const [currentCategory, setCurrentCategory] = useState(DEFAULT_CATEGORIES[0]);
+  const [categories, setCategories] = useState([]);
+  const [currentCategory, setCurrentCategory] = useState('Tất cả');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   useEffect(() => {
     initStorage();
-    setTools(getTools());
+    refreshData();
   }, []);
+
+  const refreshData = () => {
+    setTools(getTools());
+    setCategories(getCategories());
+  };
 
   const handleAddTool = (newTool) => {
     saveTool(newTool);
@@ -31,9 +37,22 @@ function App() {
     }
   };
 
+  const handleToggleFavorite = (id) => {
+    toggleFavorite(id);
+    setTools(getTools());
+  };
+
   const filteredTools = useMemo(() => {
     return tools.filter(tool => {
-      const matchesCategory = currentCategory === 'Tất cả' || tool.category === currentCategory;
+      let matchesCategory = false;
+      if (currentCategory === 'Tất cả') {
+        matchesCategory = true;
+      } else if (currentCategory === 'Yêu thích') {
+        matchesCategory = tool.isFavorite === true;
+      } else {
+        matchesCategory = tool.category === currentCategory;
+      }
+
       const matchesSearch = tool.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             tool.description.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
@@ -43,6 +62,7 @@ function App() {
   return (
     <div className="app-container">
       <Sidebar 
+        categories={categories}
         currentCategory={currentCategory} 
         setCurrentCategory={setCurrentCategory}
         onAddClick={() => setIsAddModalOpen(true)}
@@ -83,19 +103,22 @@ function App() {
             </div>
           </header>
 
-          <ToolGrid tools={filteredTools} onDelete={handleDeleteTool} />
+          <ToolGrid tools={filteredTools} onDelete={handleDeleteTool} onToggleFavorite={handleToggleFavorite} />
         </div>
       </main>
 
       <AddToolModal 
+        categories={categories}
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
         onSave={handleAddTool} 
       />
 
       <SettingsModal
+        categories={categories}
         isOpen={isSettingsModalOpen}
         onClose={() => setIsSettingsModalOpen(false)}
+        onDataChanged={refreshData}
       />
 
       <AiAssistant />

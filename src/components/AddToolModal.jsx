@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { DEFAULT_CATEGORIES } from '../utils/storage';
 
-export default function AddToolModal({ isOpen, onClose, onSave }) {
+export default function AddToolModal({ categories, isOpen, onClose, onSave }) {
   const [formData, setFormData] = useState({
     title: '',
     url: '',
     description: '',
-    category: DEFAULT_CATEGORIES[1],
+    category: '',
     imageUrl: ''
   });
+
+  useEffect(() => {
+    if (categories && categories.length > 0) {
+      setFormData(prev => ({ ...prev, category: categories[0] }));
+    }
+  }, [categories]);
 
   if (!isOpen) return null;
 
@@ -29,7 +34,7 @@ export default function AddToolModal({ isOpen, onClose, onSave }) {
     }
 
     onSave({ ...formData, url: finalUrl });
-    setFormData({ title: '', url: '', description: '', category: DEFAULT_CATEGORIES[1], imageUrl: '' });
+    setFormData({ title: '', url: '', description: '', category: categories[0] || '', imageUrl: '' });
     onClose();
   };
 
@@ -53,7 +58,7 @@ export default function AddToolModal({ isOpen, onClose, onSave }) {
           <div className="input-group">
             <label>Danh mục</label>
             <select name="category" className="input-control" value={formData.category} onChange={handleChange}>
-              {DEFAULT_CATEGORIES.filter(c => c !== 'Tất cả').map(cat => (
+              {categories.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>

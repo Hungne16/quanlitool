@@ -1,7 +1,7 @@
 import React from 'react';
-import { ExternalLink, Trash2, ArrowUpRight } from 'lucide-react';
+import { ExternalLink, Trash2, ArrowUpRight, Heart } from 'lucide-react';
 
-export default function ToolCard({ tool, onDelete }) {
+export default function ToolCard({ tool, onDelete, onToggleFavorite }) {
   const getDomain = (url) => {
     try {
       const domain = new URL(url).hostname;
@@ -26,7 +26,15 @@ export default function ToolCard({ tool, onDelete }) {
             )}
           </div>
           
-          <div className="tool-actions">
+          <div className="tool-actions" style={{ display: 'flex', gap: '0.25rem' }}>
+            <button 
+              onClick={() => onToggleFavorite(tool.id)} 
+              className="btn-icon-delete opacity-0 group-hover-opacity-100"
+              style={{ color: tool.isFavorite ? '#ef4444' : 'var(--text-muted)' }}
+              title={tool.isFavorite ? "Bỏ yêu thích" : "Yêu thích"}
+            >
+              <Heart size={16} fill={tool.isFavorite ? '#ef4444' : 'none'} />
+            </button>
             <button 
               onClick={() => onDelete(tool.id)} 
               className="btn-icon-delete opacity-0 group-hover-opacity-100"

@@ -1,8 +1,8 @@
 import React from 'react';
-import { LayoutGrid, PlusCircle, Settings, Bot, Code, PenTool, Zap, BookOpen, Folder, Compass } from 'lucide-react';
-import { DEFAULT_CATEGORIES } from '../utils/storage';
+import { LayoutGrid, PlusCircle, Settings, Bot, Code, PenTool, Zap, BookOpen, Folder, Compass, Heart } from 'lucide-react';
 
 export default function Sidebar({ 
+  categories = [],
   currentCategory, 
   setCurrentCategory, 
   onAddClick,
@@ -12,6 +12,7 @@ export default function Sidebar({
   const getCategoryIcon = (category) => {
     switch(category) {
       case 'Tất cả': return <Compass size={18} />;
+      case 'Yêu thích': return <Heart size={18} color="#ef4444" fill={currentCategory === 'Yêu thích' ? '#ef4444' : 'none'} />;
       case 'AI & Machine Learning': return <Bot size={18} />;
       case 'Lập trình': return <Code size={18} />;
       case 'Thiết kế': return <PenTool size={18} />;
@@ -41,10 +42,36 @@ export default function Sidebar({
         </h2>
       </div>
 
-      <div className="sidebar-nav" style={{ flex: 1, marginTop: '1rem' }}>
+      <div className="sidebar-nav" style={{ flex: 1, marginTop: '1rem', overflowY: 'auto' }}>
+        <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '1rem', paddingLeft: '0.75rem' }}>Khám phá</h4>
+        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '2rem' }}>
+          <li>
+            <button 
+              onClick={() => setCurrentCategory('Tất cả')}
+              className={`category-btn ${currentCategory === 'Tất cả' ? 'active' : ''}`}
+            >
+              <span className="icon-wrapper" style={{ color: currentCategory === 'Tất cả' ? 'var(--accent-color)' : 'var(--text-secondary)' }}>
+                {getCategoryIcon('Tất cả')}
+              </span>
+              Tất cả
+            </button>
+          </li>
+          <li>
+            <button 
+              onClick={() => setCurrentCategory('Yêu thích')}
+              className={`category-btn ${currentCategory === 'Yêu thích' ? 'active' : ''}`}
+            >
+              <span className="icon-wrapper" style={{ color: currentCategory === 'Yêu thích' ? '#ef4444' : 'var(--text-secondary)' }}>
+                {getCategoryIcon('Yêu thích')}
+              </span>
+              Yêu thích
+            </button>
+          </li>
+        </ul>
+
         <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '1rem', paddingLeft: '0.75rem' }}>Danh mục</h4>
         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          {DEFAULT_CATEGORIES.map(cat => {
+          {categories.map(cat => {
             const isActive = currentCategory === cat;
             return (
               <li key={cat}>
