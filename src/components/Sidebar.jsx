@@ -6,7 +6,8 @@ export default function Sidebar({
   currentCategory, 
   setCurrentCategory, 
   onAddClick,
-  onSettingsClick
+  onSettingsClick,
+  isAdmin
 }) {
   
   const getCategoryIcon = (category) => {
@@ -91,12 +92,16 @@ export default function Sidebar({
       </div>
 
       <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start', padding: '0.75rem 1rem' }} onClick={onSettingsClick}>
-          <Settings size={18} /> Cài đặt hệ thống
-        </button>
-        <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'flex-start', padding: '0.75rem 1rem' }} onClick={onAddClick}>
-          <PlusCircle size={18} /> Thêm công cụ mới
-        </button>
+        {isAdmin && (
+          <>
+            <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start', padding: '0.75rem 1rem' }} onClick={onSettingsClick}>
+              <Settings size={18} /> Cài đặt hệ thống
+            </button>
+            <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'flex-start', padding: '0.75rem 1rem' }} onClick={onAddClick}>
+              <PlusCircle size={18} /> Thêm công cụ mới
+            </button>
+          </>
+        )}
       </div>
     </aside>
   );

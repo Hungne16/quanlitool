@@ -1,7 +1,7 @@
 import React from 'react';
 import ToolCard from './ToolCard';
 
-export default function ToolGrid({ tools, onDelete, onToggleFavorite }) {
+export default function ToolGrid({ tools, onDelete, onToggleFavorite, isAdmin }) {
   if (tools.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-secondary)' }}>
@@ -19,7 +19,7 @@ export default function ToolGrid({ tools, onDelete, onToggleFavorite }) {
       paddingBottom: '2rem'
     }}>
       {tools.map(tool => (
-        <ToolCard key={tool.id} tool={tool} onDelete={onDelete} onToggleFavorite={onToggleFavorite} />
+        <ToolCard key={tool.id} tool={tool} onDelete={onDelete} onToggleFavorite={onToggleFavorite} isAdmin={isAdmin} />
       ))}
     </div>
   );

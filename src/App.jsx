@@ -5,7 +5,10 @@ import ToolGrid from './components/ToolGrid';
 import AddToolModal from './components/AddToolModal';
 import SettingsModal from './components/SettingsModal';
 import AiAssistant from './components/AiAssistant';
+import AuthModal from './components/AuthModal';
 import { getTools, getCategories, saveTool, deleteTool, toggleFavorite, initStorage } from './utils/storage';
+import { auth } from './config/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 function App() {
   const [tools, setTools] = useState([]);
@@ -14,6 +17,22 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsAdmin(true);
+        setUserEmail(user.email);
+      } else {
+        setIsAdmin(false);
+        setUserEmail('');
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const initialize = async () => {
@@ -72,6 +91,7 @@ function App() {
         setCurrentCategory={setCurrentCategory}
         onAddClick={() => setIsAddModalOpen(true)}
         onSettingsClick={() => setIsSettingsModalOpen(true)}
+        isAdmin={isAdmin}
       />
       
       <main className="main-content">
@@ -94,9 +114,26 @@ function App() {
             <button className="btn-icon">
               <Bell size={20} />
             </button>
-            <div className="user-avatar">
-              <UserIcon size={20} />
-            </div>
+            {isAdmin ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{userEmail}</span>
+                <button 
+                  onClick={() => { if(window.confirm('Bạn muốn đăng xuất?')) signOut(auth); }} 
+                  className="btn btn-secondary" 
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                >
+                  Đăng xuất
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setIsAuthModalOpen(true)} 
+                className="btn btn-primary" 
+                style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <UserIcon size={16} /> Admin
+              </button>
+            )}
           </div>
         </div>
 
@@ -108,9 +145,11 @@ function App() {
             </div>
           </header>
 
-          <ToolGrid tools={filteredTools} onDelete={handleDeleteTool} onToggleFavorite={handleToggleFavorite} />
+          <ToolGrid tools={filteredTools} onDelete={handleDeleteTool} onToggleFavorite={handleToggleFavorite} isAdmin={isAdmin} />
         </div>
       </main>
+
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
 
       <AddToolModal 
         categories={categories}
