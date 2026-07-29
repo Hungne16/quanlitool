@@ -63,7 +63,7 @@ export default function Tools() {
       fetchTools();
     } catch (err) {
       console.error(err);
-      alert('Lỗi xóa công cụ. Có thể do Firebase Rules chặn quyền ghi.');
+      alert('Lỗi khi xóa tool: ' + (err.message || 'Unknown error'));
     }
   };
 

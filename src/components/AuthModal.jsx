@@ -35,6 +35,8 @@ export default function AuthModal({ isOpen, onClose }) {
         setError('Mật khẩu quá yếu, tối thiểu 6 ký tự.');
       } else if (err.code === 'auth/invalid-email') {
         setError('Định dạng email không hợp lệ.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError('LỖI FIREBASE: Bạn chưa bật tính năng Đăng nhập bằng Email/Password trong Firebase Console! Hãy vào Authentication -> Sign-in method để bật nó lên.');
       } else {
         setError('Đã có lỗi xảy ra: ' + err.message);
       }

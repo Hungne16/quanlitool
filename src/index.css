@@ -652,3 +652,121 @@ select.input-control {
   color: var(--text-secondary);
   cursor: not-allowed;
 }
+
+/* ----------------------------------
+   RESPONSIVE & AUTO LAYOUT
+------------------------------------- */
+
+/* Desktop Defaults (Extracted from inline styles) */
+.sidebar {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.admin-layout {
+  display: flex;
+  height: 100vh;
+}
+
+.admin-sidebar {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile Overrides */
+@media (max-width: 768px) {
+  /* Public Home Layout */
+  .app-container {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
+  .main-content {
+    overflow-y: visible !important;
+  }
+  
+  .sidebar {
+    width: 100% !important;
+    height: auto !important;
+    padding: 1rem !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    gap: 1rem !important;
+  }
+  
+  .sidebar-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    gap: 0.5rem !important;
+    padding-bottom: 1rem !important;
+  }
+  .sidebar-nav ul {
+    flex-direction: row !important;
+    gap: 0.5rem !important;
+    margin-bottom: 0 !important;
+  }
+  .sidebar-nav h4 {
+    display: none !important;
+  }
+  .category-btn {
+    white-space: nowrap !important;
+  }
+  
+  .sidebar-header h2 {
+    font-size: 1.2rem !important;
+  }
+
+  .top-header {
+    flex-direction: column !important;
+    padding: 1rem !important;
+    gap: 1rem !important;
+    align-items: stretch !important;
+  }
+  .search-bar-container {
+    width: 100% !important;
+  }
+  .header-actions {
+    justify-content: space-between !important;
+  }
+
+  .tool-grid {
+    grid-template-columns: 1fr !important; 
+  }
+  
+  .chat-panel {
+    width: calc(100vw - 2rem) !important;
+    right: 1rem !important;
+  }
+
+  /* Admin Layout */
+  .admin-layout {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100vh !important;
+  }
+  .admin-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color) !important;
+  }
+  .admin-nav {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+  }
+  .admin-nav-item {
+    white-space: nowrap !important;
+  }
+  .admin-nav-text {
+    display: none !important;
+  }
+  .admin-footer {
+    flex-direction: row !important;
+  }
+  .admin-footer .btn {
+    flex: 1;
+  }
+}

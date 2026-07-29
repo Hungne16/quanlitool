@@ -26,25 +26,23 @@ export default function AdminLayout() {
   ];
 
   return (
-    <div style={{ display: 'flex', height: '100vh', backgroundColor: 'var(--bg-secondary)' }}>
+    <div className="admin-layout" style={{ backgroundColor: 'var(--bg-secondary)' }}>
       {/* Admin Sidebar */}
-      <aside style={{ 
-        width: '260px', 
+      <aside className="admin-sidebar" style={{ 
         backgroundColor: 'var(--bg-primary)', 
         borderRight: '1px solid var(--border-color)',
-        display: 'flex',
-        flexDirection: 'column'
       }}>
         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Admin Panel</h2>
           <span style={{ fontSize: '0.8rem', color: 'var(--accent-color)' }}>Role: {profile?.role}</span>
         </div>
         
-        <nav style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <nav className="admin-nav" style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {navItems.map(item => (
             <Link 
               key={item.path}
               to={item.path}
+              className="admin-nav-item"
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.75rem',
                 padding: '0.75rem 1rem', borderRadius: '8px',
@@ -54,12 +52,12 @@ export default function AdminLayout() {
                 transition: 'all 0.2s'
               }}
             >
-              {item.icon} {item.name}
+              {item.icon} <span className="admin-nav-text">{item.name}</span>
             </Link>
           ))}
         </nav>
 
-        <div style={{ padding: '1rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="admin-footer" style={{ padding: '1rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <Link to="/" className="btn btn-secondary" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', textDecoration: 'none' }}>
             <ArrowLeft size={16} /> Về trang khách
           </Link>

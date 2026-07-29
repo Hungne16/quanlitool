@@ -26,11 +26,7 @@ export default function Sidebar({
 
   return (
     <aside className="sidebar" style={{ 
-      width: '280px', 
       padding: '2rem 1.5rem', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      gap: '2rem',
       background: 'var(--bg-sidebar)',
       borderRight: '1px solid var(--border-color)',
       zIndex: 10
