@@ -30,6 +30,28 @@
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+:root[data-theme="light"] {
+  --bg-color: #f8fafc;
+  --bg-gradient: radial-gradient(circle at top center, #ffffff, #f1f5f9);
+  --bg-sidebar: rgba(255, 255, 255, 0.9);
+  --bg-header: rgba(255, 255, 255, 0.8);
+  
+  --surface-color: rgba(0, 0, 0, 0.03);
+  --surface-hover: rgba(0, 0, 0, 0.06);
+  --surface-active: rgba(0, 0, 0, 0.1);
+  
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-highlight: rgba(0, 0, 0, 0.15);
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --accent-color: #4f46e5;
+  --accent-hover: #6366f1;
+  --accent-glow: rgba(79, 70, 229, 0.2);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

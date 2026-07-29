@@ -4,6 +4,7 @@ import ToolGrid from '../../components/ToolGrid';
 import AddToolModal from '../../components/AddToolModal';
 import SettingsModal from '../../components/SettingsModal';
 import AiAssistant from '../../components/AiAssistant';
+import ThemeToggle from '../../components/ThemeToggle';
 import { getTools, getCategories, saveTool, deleteTool, toggleFavorite, initStorage } from '../../utils/storage';
 import { Search, Bell, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -138,6 +139,7 @@ export default function Home() {
           </div>
           
           <div className="header-actions">
+            <ThemeToggle />
             <button className="btn-icon">
               <Bell size={20} />
             </button>

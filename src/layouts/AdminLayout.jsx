@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 import { Users, LayoutDashboard, Settings, Layers, LogOut, ArrowLeft, PlusSquare } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -32,9 +33,12 @@ export default function AdminLayout() {
         backgroundColor: 'var(--bg-primary)', 
         borderRight: '1px solid var(--border-color)',
       }}>
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Admin Panel</h2>
-          <span style={{ fontSize: '0.8rem', color: 'var(--accent-color)' }}>Role: {profile?.role}</span>
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Admin Panel</h2>
+            <span style={{ fontSize: '0.8rem', color: 'var(--accent-color)' }}>Role: {profile?.role}</span>
+          </div>
+          <ThemeToggle />
         </div>
         
         <nav className="admin-nav" style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
