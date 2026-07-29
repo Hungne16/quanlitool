@@ -21,14 +21,14 @@ export const AuthProvider = ({ children }) => {
           const userDocRef = doc(db, 'users', currentUser.uid);
           const userDocSnap = await getDoc(userDocRef);
           
-          let isFirstUser = true; // DEFAULT TO TRUE TO BOOTSTRAP ADMIN
+          let isFirstUser = false; // Đã đóng cửa hậu (backdoor). Người mới mặc định là Member.
           if (!userDocSnap.exists()) {
             try {
               // This might fail if Firestore rules block reading the whole collection
               const usersSnap = await getDocs(query(collection(db, 'users'), limit(1)));
               isFirstUser = usersSnap.empty;
             } catch (queryErr) {
-              console.warn("Could not check if first user (likely due to security rules). Defaulting to super_admin to prevent lockout.", queryErr);
+              console.warn("Could not check if first user (likely due to security rules). Defaulting to member.", queryErr);
             }
 
             const newProfile = {
