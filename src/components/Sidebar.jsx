@@ -1,5 +1,6 @@
 import React from 'react';
 import { LayoutGrid, PlusCircle, Settings, Bot, Code, PenTool, Zap, BookOpen, Folder, Compass, Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Sidebar({ 
   categories = [],
@@ -24,6 +25,52 @@ export default function Sidebar({
     }
   };
 
+  const CategoryButton = ({ category, label, forceColor }) => {
+    const isActive = currentCategory === category;
+    
+    // Determine icon color based on state and special cases
+    let iconColor = 'var(--text-secondary)';
+    if (isActive) {
+      iconColor = forceColor || 'var(--accent-color)';
+    } else if (forceColor) {
+      iconColor = 'var(--text-secondary)'; 
+    }
+
+    return (
+      <li>
+        <button 
+          onClick={() => setCurrentCategory(category)}
+          className={`category-btn ${isActive ? 'active' : ''}`}
+          style={{ position: 'relative' }}
+        >
+          <span className="icon-wrapper" style={{ color: iconColor, position: 'relative', zIndex: 1 }}>
+            {getCategoryIcon(category)}
+          </span>
+          <span style={{ position: 'relative', zIndex: 1 }}>{label || category}</span>
+          
+          {isActive && (
+            <motion.div
+              layoutId="activeCategoryIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'var(--surface-active)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-highlight)',
+                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                zIndex: 0
+              }}
+            />
+          )}
+        </button>
+      </li>
+    );
+  };
+
   return (
     <aside className="sidebar" style={{ 
       padding: '2rem 1.5rem', 
@@ -43,48 +90,15 @@ export default function Sidebar({
       <div className="sidebar-nav" style={{ flex: 1, marginTop: '1rem', overflowY: 'auto' }}>
         <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '1rem', paddingLeft: '0.75rem' }}>Khám phá</h4>
         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '2rem' }}>
-          <li>
-            <button 
-              onClick={() => setCurrentCategory('Tất cả')}
-              className={`category-btn ${currentCategory === 'Tất cả' ? 'active' : ''}`}
-            >
-              <span className="icon-wrapper" style={{ color: currentCategory === 'Tất cả' ? 'var(--accent-color)' : 'var(--text-secondary)' }}>
-                {getCategoryIcon('Tất cả')}
-              </span>
-              Tất cả
-            </button>
-          </li>
-          <li>
-            <button 
-              onClick={() => setCurrentCategory('Yêu thích')}
-              className={`category-btn ${currentCategory === 'Yêu thích' ? 'active' : ''}`}
-            >
-              <span className="icon-wrapper" style={{ color: currentCategory === 'Yêu thích' ? '#ef4444' : 'var(--text-secondary)' }}>
-                {getCategoryIcon('Yêu thích')}
-              </span>
-              Yêu thích
-            </button>
-          </li>
+          <CategoryButton category="Tất cả" />
+          <CategoryButton category="Yêu thích" forceColor="#ef4444" />
         </ul>
 
         <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '1rem', paddingLeft: '0.75rem' }}>Danh mục</h4>
         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          {categories.map(cat => {
-            const isActive = currentCategory === cat;
-            return (
-              <li key={cat}>
-                <button 
-                  onClick={() => setCurrentCategory(cat)}
-                  className={`category-btn ${isActive ? 'active' : ''}`}
-                >
-                  <span className="icon-wrapper" style={{ color: isActive ? 'var(--accent-color)' : 'var(--text-secondary)' }}>
-                    {getCategoryIcon(cat)}
-                  </span>
-                  {cat}
-                </button>
-              </li>
-            );
-          })}
+          {categories.map(cat => (
+            <CategoryButton key={cat} category={cat} />
+          ))}
         </ul>
       </div>
 
