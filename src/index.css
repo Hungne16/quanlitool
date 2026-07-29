@@ -10,6 +10,7 @@
   --surface-color: rgba(255, 255, 255, 0.04);
   --surface-hover: rgba(255, 255, 255, 0.08);
   --surface-active: rgba(255, 255, 255, 0.12);
+  --card-bg: rgba(25, 25, 30, 0.4);
   
   --border-color: rgba(255, 255, 255, 0.08);
   --border-highlight: rgba(255, 255, 255, 0.15);
@@ -39,6 +40,7 @@
   --surface-color: rgba(0, 0, 0, 0.03);
   --surface-hover: rgba(0, 0, 0, 0.06);
   --surface-active: rgba(0, 0, 0, 0.1);
+  --card-bg: rgba(255, 255, 255, 0.6);
   
   --border-color: rgba(0, 0, 0, 0.1);
   --border-highlight: rgba(0, 0, 0, 0.15);
@@ -253,7 +255,7 @@ body {
   font-weight: 700;
   letter-spacing: -0.02em;
   margin-bottom: 0.5rem;
-  background: linear-gradient(to right, #fff, #94a3b8);
+  background: linear-gradient(to right, var(--text-primary), var(--text-muted));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -267,7 +269,7 @@ body {
 ------------------------------------- */
 .tool-card {
   position: relative;
-  background: rgba(25, 25, 30, 0.4);
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   display: flex;
