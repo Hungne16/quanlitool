@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import { Users, Tool, Layers, CheckCircle } from 'lucide-react';
+import { Users, Wrench, Layers, CheckCircle } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ users: 0, tools: 0, pending: 0, categories: 0 });
@@ -44,7 +44,7 @@ export default function Dashboard() {
 
   const statCards = [
     { title: 'Tổng Người dùng', value: stats.users, icon: <Users size={24} />, color: '#3b82f6' },
-    { title: 'Tổng Công cụ', value: stats.tools, icon: <CheckCircle size={24} />, color: '#10b981' },
+    { title: 'Tổng Công cụ', value: stats.tools, icon: <Wrench size={24} />, color: '#10b981' },
     { title: 'Chờ duyệt', value: stats.pending, icon: <CheckCircle size={24} />, color: '#f59e0b' },
     { title: 'Danh mục', value: stats.categories, icon: <Layers size={24} />, color: '#8b5cf6' },
   ];

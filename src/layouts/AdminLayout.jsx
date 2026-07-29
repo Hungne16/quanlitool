@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { signOut } from 'firebase/auth';
-import { auth } from '../../config/firebase';
+import { auth } from '../config/firebase';
 import { Users, LayoutDashboard, Settings, Layers, LogOut, ArrowLeft, PlusSquare } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
