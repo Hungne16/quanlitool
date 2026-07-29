@@ -791,3 +791,90 @@ select.input-control {
     flex: 1;
   }
 }
+
+/* ----------------------------------
+   AUTH MODAL DUAL PANEL
+------------------------------------- */
+.auth-container {
+  position: relative;
+  width: 850px;
+  max-width: 95vw;
+  height: 500px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  display: flex;
+}
+
+.auth-form-container {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.auth-form-left {
+  left: 0;
+}
+
+.auth-form-right {
+  right: 0;
+}
+
+.auth-overlay-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 50;
+}
+
+.auth-overlay-bg {
+  position: absolute;
+  top: 0;
+  width: 200%; /* double width so it covers the whole 850px */
+  height: 100%;
+  background: url('/assets/auth-bg.png') no-repeat center center;
+  background-size: cover;
+}
+
+.auth-mobile-bg {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .auth-container {
+    flex-direction: column;
+    height: auto;
+    width: 100%;
+  }
+  .auth-form-container {
+    position: relative;
+    width: 100%;
+    padding: 2rem;
+    height: auto;
+    z-index: 10;
+    display: none; /* Hide by default on mobile */
+  }
+  .auth-form-container.active {
+    display: flex;
+  }
+  .auth-overlay-container {
+    display: none; /* Hide the sliding overlay on mobile */
+  }
+  .auth-mobile-bg {
+    display: block;
+    width: 100%;
+    height: 150px;
+    background: url('/assets/auth-bg.png') no-repeat center center;
+    background-size: cover;
+  }
+}
