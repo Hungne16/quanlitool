@@ -38,6 +38,12 @@
   --bg-header: rgba(255, 255, 255, 0.8);
   
   --surface-color: rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  
+  --bg-admin: #f3f4f8; /* Soft UI Admin background */
+  
   --surface-hover: rgba(0, 0, 0, 0.06);
   --surface-active: rgba(0, 0, 0, 0.1);
   --card-bg: rgba(255, 255, 255, 0.6);
@@ -877,4 +883,5 @@ select.input-control {
     background: url('/assets/auth-bg.png') no-repeat center center;
     background-size: cover;
   }
-}
+} 
+.dark { --bg-admin: #1e1e2d; }
