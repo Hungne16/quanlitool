@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Link as LinkIcon, Type, Image as ImageIcon, FileText, LayoutList } from 'lucide-react';
+import ToolCard from './ToolCard';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default function AddToolModal({ categories, isOpen, onClose, onSave }) {
+export default function AddToolModal({ categories, isOpen, onClose, onSave, initialData = null }) {
   const [formData, setFormData] = useState({
     title: '',
     url: '',
@@ -11,10 +13,12 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave }) {
   });
 
   useEffect(() => {
-    if (categories && categories.length > 0) {
+    if (initialData) {
+      setFormData(initialData);
+    } else if (categories && categories.length > 0) {
       setFormData(prev => ({ ...prev, category: categories[0] }));
     }
-  }, [categories]);
+  }, [categories, initialData, isOpen]);
 
   if (!isOpen) return null;
 
@@ -38,48 +42,132 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave }) {
     onClose();
   };
 
+  // Create a dummy tool for the live preview
+  const previewTool = {
+    id: 'preview',
+    title: formData.title || 'Tên công cụ...',
+    url: formData.url || 'https://example.com',
+    description: formData.description || 'Mô tả ngắn gọn về công cụ của bạn sẽ hiển thị ở đây...',
+    category: formData.category || 'Category',
+    imageUrl: formData.imageUrl
+  };
+
   return (
-    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="modal-content glass-panel">
-        <button className="modal-close" onClick={onClose}><X size={20} /></button>
-        <h2 style={{ marginBottom: '1.5rem' }}>Thêm công cụ mới</h2>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="input-group">
-            <label>Tên công cụ *</label>
-            <input required type="text" name="title" className="input-control" value={formData.title} onChange={handleChange} placeholder="VD: ChatGPT" />
+    <AnimatePresence>
+      <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.2 }}
+          className="modal-content glass-panel"
+          style={{ 
+            maxWidth: '900px', 
+            width: '95%',
+            display: 'flex', 
+            padding: 0, 
+            overflow: 'hidden',
+            borderRadius: '24px'
+          }}
+        >
+          {/* Left Side - Live Preview */}
+          <div style={{ 
+            flex: '1', 
+            background: 'var(--bg-secondary)', 
+            padding: '2.5rem', 
+            display: 'flex', 
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRight: '1px solid var(--border-color)',
+            position: 'relative'
+          }} className="hidden md:flex">
+            
+            <div style={{ width: '100%', maxWidth: '320px', pointerEvents: 'none' }}>
+              <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>✨ Live Preview</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Thẻ sẽ hiển thị như thế này</p>
+              </div>
+              
+              <ToolCard tool={previewTool} isAdmin={false} />
+            </div>
+
+            {/* Decorative background element */}
+            <div style={{ 
+              position: 'absolute', width: '200px', height: '200px', 
+              background: 'linear-gradient(135deg, #7463c6, #ff7eb3)', 
+              borderRadius: '50%', filter: 'blur(80px)', opacity: 0.15,
+              top: '-50px', left: '-50px', zIndex: 0
+            }}></div>
           </div>
 
-          <div className="input-group">
-            <label>Đường dẫn (URL) *</label>
-            <input required type="text" name="url" className="input-control" value={formData.url} onChange={handleChange} placeholder="VD: https://chat.openai.com" />
-          </div>
+          {/* Right Side - Form */}
+          <div style={{ flex: '1', padding: '2.5rem', position: 'relative' }}>
+            <button 
+              className="modal-close" 
+              onClick={onClose}
+              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'var(--surface-hover)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+            >
+              <X size={18} />
+            </button>
 
-          <div className="input-group">
-            <label>Danh mục</label>
-            <select name="category" className="input-control" value={formData.category} onChange={handleChange}>
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
+            <h2 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 700 }}>
+              {initialData ? 'Sửa công cụ' : 'Thêm công cụ mới'}
+            </h2>
+            
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+                  <Type size={16} color="var(--accent-color)" /> Tên công cụ *
+                </label>
+                <input required type="text" name="title" className="input-control" value={formData.title} onChange={handleChange} placeholder="VD: ChatGPT" style={{ padding: '0.75rem 1rem', borderRadius: '12px' }} />
+              </div>
 
-          <div className="input-group">
-            <label>Mô tả ngắn gọn</label>
-            <textarea name="description" className="input-control" value={formData.description} onChange={handleChange} placeholder="Công cụ này dùng để làm gì?" rows={3} style={{ resize: 'vertical' }} />
-          </div>
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+                  <LinkIcon size={16} color="var(--accent-color)" /> Đường dẫn (URL) *
+                </label>
+                <input required type="text" name="url" className="input-control" value={formData.url} onChange={handleChange} placeholder="VD: https://chat.openai.com" style={{ padding: '0.75rem 1rem', borderRadius: '12px' }} />
+              </div>
 
-          <div className="input-group">
-            <label>Link Ảnh/Icon (Tuỳ chọn)</label>
-            <input type="text" name="imageUrl" className="input-control" value={formData.imageUrl} onChange={handleChange} placeholder="https://..." />
-          </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div className="input-group" style={{ marginBottom: 0, flex: 1 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+                    <LayoutList size={16} color="var(--accent-color)" /> Danh mục
+                  </label>
+                  <select name="category" className="input-control" value={formData.category} onChange={handleChange} style={{ padding: '0.75rem 1rem', borderRadius: '12px' }}>
+                    {categories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
-            <button type="button" className="btn btn-ghost" onClick={onClose}>Hủy</button>
-            <button type="submit" className="btn btn-primary">Lưu công cụ</button>
+                <div className="input-group" style={{ marginBottom: 0, flex: 1 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+                    <ImageIcon size={16} color="var(--accent-color)" /> Logo URL
+                  </label>
+                  <input type="text" name="imageUrl" className="input-control" value={formData.imageUrl} onChange={handleChange} placeholder="Tuỳ chọn..." style={{ padding: '0.75rem 1rem', borderRadius: '12px' }} />
+                </div>
+              </div>
+
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+                  <FileText size={16} color="var(--accent-color)" /> Mô tả ngắn gọn
+                </label>
+                <textarea name="description" className="input-control" value={formData.description} onChange={handleChange} placeholder="Công cụ này dùng để làm gì?" rows={3} style={{ resize: 'vertical', padding: '0.75rem 1rem', borderRadius: '12px' }} />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+                <button type="button" className="btn btn-ghost" onClick={onClose} style={{ padding: '0.75rem 1.5rem', borderRadius: '12px' }}>Hủy</button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', background: 'linear-gradient(135deg, #7463c6, #ff7eb3)', border: 'none', boxShadow: '0 10px 20px rgba(116, 99, 198, 0.3)' }}>
+                  {initialData ? 'Cập nhật' : 'Lưu công cụ'}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   );
 }
