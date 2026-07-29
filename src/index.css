@@ -884,4 +884,6 @@ select.input-control {
     background-size: cover;
   }
 } 
-.dark { --bg-admin: #1e1e2d; }
+.dark { --bg-admin: #1e1e2d; } 
+.tool-action-btn:hover { max-width: 120px !important; }
+.tool-action-btn:hover .btn-text { opacity: 1 !important; }
