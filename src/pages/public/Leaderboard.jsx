@@ -9,6 +9,16 @@ import { getLevelInfo } from '../../utils/gamification';
 
 const ANIMAL_AVATARS = ['🦁','🐯','🦊','🐺','🦝','🐻','🐼','🐨','🦘','🦔','🐸','🦉','🦅','🦋','🐬','🦈','🦖','🦁','🐯','🦊'];
 
+// F1-style accent colors per rank slot (2nd left, 1st center, 3rd right)
+const F1_SLOTS = [
+  { dataIdx: 1, rank: 2, accent: '#f97316', glow: 'rgba(249,115,22,0.55)', cardH: 260, numColor: 'rgba(249,115,22,0.18)', label: 'HÌ' },
+  { dataIdx: 0, rank: 1, accent: '#22d3ee', glow: 'rgba(34,211,238,0.55)',  cardH: 310, numColor: 'rgba(34,211,238,0.15)',  label: 'HẤT' },
+  { dataIdx: 2, rank: 3, accent: '#ef4444', glow: 'rgba(239,68,68,0.55)',   cardH: 225, numColor: 'rgba(239,68,68,0.15)',   label: 'A'   },
+];
+
+// Plus-cross pattern SVG as CSS bg
+const PLUS_PATTERN = `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 2h4v8h8v4h-8v8h-4v-8H2v-4h8z' fill='%23ffffff' fill-opacity='0.04'/%3E%3C/svg%3E")`;
+
 export default function Leaderboard() {
   const { user, isAdmin, profile } = useAuth();
   const [leaders, setLeaders] = useState([]);
@@ -31,17 +41,10 @@ export default function Leaderboard() {
   }, []);
 
   const top3 = leaders.slice(0, 3);
-  const rest = leaders.slice(3);
+  const rest  = leaders.slice(3);
   const totalPoints = leaders.reduce((s, l) => s + (l.points || 0), 0);
   const myRank = user ? leaders.findIndex(l => l.id === user.uid) + 1 : 0;
   const myInfo = profile ? getLevelInfo(profile.points || 0) : null;
-
-  // Podium: thứ tự hiển thị 2nd-left, 1st-center, 3rd-right
-  const podiumSlots = [
-    { dataIdx: 1, rank: 2, color: '#94a3b8', glow: 'rgba(148,163,184,0.5)', standH: 90,  medal: '🥈', label: 'NHÌ'  },
-    { dataIdx: 0, rank: 1, color: '#fbbf24', glow: 'rgba(251,191,36,0.6)',  standH: 130, medal: '🥇', label: 'NHẤT' },
-    { dataIdx: 2, rank: 3, color: '#cd7f32', glow: 'rgba(180,83,9,0.5)',    standH: 65,  medal: '🥉', label: 'BA'   },
-  ];
 
   return (
     <div className="app-container">
@@ -55,141 +58,178 @@ export default function Leaderboard() {
 
       <main className="main-content" style={{ overflowY: 'auto' }}>
 
-        {/* ===== HERO SECTION ===== */}
+        {/* ===== F1 HERO SECTION ===== */}
         <div style={{
-          background: 'linear-gradient(160deg, #0f0c29 0%, #1b1450 50%, #24243e 100%)',
-          paddingTop: '2.5rem',
-          paddingBottom: '0',
+          background: `${PLUS_PATTERN}, linear-gradient(170deg, #0a0a0f 0%, #12101e 60%, #1a0a0a 100%)`,
+          padding: '2rem 2rem 0',
           position: 'relative',
         }}>
-          {/* Decorative glow blobs */}
-          <div style={{ position: 'absolute', top: '-80px', left: '-80px', width: '350px', height: '350px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(251,191,36,0.10) 0%, transparent 70%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', top: 0, right: '-60px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+          {/* Red side accents like F1 */}
+          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: 'linear-gradient(180deg, #ef4444, #b91c1c)' }} />
+          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '6px', background: 'linear-gradient(180deg, #ef4444, #b91c1c)' }} />
 
           {/* Title */}
           <motion.div
-            initial={{ opacity: 0, y: -16 }}
+            initial={{ opacity: 0, y: -14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{ textAlign: 'center', marginBottom: '2rem', position: 'relative', zIndex: 1 }}
+            style={{ textAlign: 'center', marginBottom: '1.75rem', position: 'relative', zIndex: 1 }}
           >
-            <div style={{ fontSize: '3rem', marginBottom: '0.3rem', filter: 'drop-shadow(0 0 18px rgba(251,191,36,0.7))' }}>🏆</div>
-            <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: 'white', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>
-              Ai sẽ là <span style={{ color: '#fbbf24', textShadow: '0 0 20px rgba(251,191,36,0.6)' }}>LEADER</span>?
+            <div style={{
+              display: 'inline-block',
+              background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+              color: 'white',
+              fontSize: '0.7rem',
+              fontWeight: 900,
+              letterSpacing: '0.15em',
+              padding: '0.3rem 1rem',
+              borderRadius: '4px',
+              textTransform: 'uppercase',
+              marginBottom: '0.6rem',
+            }}>
+              🏆 COMMUNITY GP
+            </div>
+            <h1 style={{
+              fontSize: '2rem',
+              fontWeight: 900,
+              color: 'white',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              margin: 0,
+              textShadow: '0 2px 20px rgba(239,68,68,0.3)',
+            }}>
+              Bảng Xếp Hạng
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem', marginTop: '0.4rem' }}>
-              Bảng xếp hạng đóng góp cộng đồng
-            </p>
           </motion.div>
 
-          {/* ===== PODIUM TOP 3 ===== */}
+          {/* TOP 3 CARDS — F1 style */}
           {!loading && top3.length > 0 && (
             <div style={{
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: 'center',
-              gap: '0.75rem',
-              paddingLeft: '1.5rem',
-              paddingRight: '1.5rem',
+              gap: '0.5rem',
               position: 'relative',
               zIndex: 2,
+              maxWidth: '700px',
+              margin: '0 auto',
             }}>
-              {podiumSlots.map((slot) => {
+              {F1_SLOTS.map((slot) => {
                 const leader = top3[slot.dataIdx];
                 if (!leader) return null;
                 const levelInfo = getLevelInfo(leader.points || 0);
                 const isMe = user && leader.id === user.uid;
                 const isFirst = slot.rank === 1;
                 const animal = ANIMAL_AVATARS[slot.dataIdx];
+                const displayName = (leader.nickname || (leader.email ? leader.email.split('@')[0] : 'Ẩn danh')).toUpperCase();
 
                 return (
                   <motion.div
                     key={leader.id}
-                    initial={{ opacity: 0, y: 50 }}
+                    initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: isFirst ? 0.05 : 0.2 }}
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: isFirst ? '0 0 200px' : '0 0 160px' }}
+                    transition={{ duration: 0.45, delay: isFirst ? 0 : 0.18 }}
+                    style={{
+                      flex: isFirst ? '0 0 220px' : '0 0 175px',
+                      height: `${slot.cardH}px`,
+                      borderRadius: '10px 10px 0 0',
+                      background: `linear-gradient(175deg, ${slot.accent}22 0%, rgba(0,0,0,0.7) 70%)`,
+                      border: `2px solid ${slot.accent}55`,
+                      borderBottom: 'none',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'flex-end',
+                      boxShadow: `0 -8px 40px ${slot.glow}, inset 0 0 60px ${slot.numColor}`,
+                      cursor: 'default',
+                    }}
                   >
-                    {/* Crown only for #1 */}
+                    {/* Top border accent bar */}
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: slot.accent, boxShadow: `0 0 12px ${slot.accent}` }} />
+
+                    {/* Giant rank number watermark */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '-10px',
+                      left: '-10px',
+                      fontSize: isFirst ? '11rem' : '9rem',
+                      fontWeight: 900,
+                      color: slot.accent,
+                      opacity: 0.13,
+                      lineHeight: 1,
+                      userSelect: 'none',
+                      fontStyle: 'italic',
+                      letterSpacing: '-0.05em',
+                    }}>
+                      {slot.rank}
+                    </div>
+
+                    {/* Animal emoji — center */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -55%)',
+                      fontSize: isFirst ? '7rem' : '5.5rem',
+                      lineHeight: 1,
+                      filter: `drop-shadow(0 8px 24px ${slot.accent}99)`,
+                      userSelect: 'none',
+                    }}>
+                      {animal}
+                    </div>
+
+                    {/* Crown for #1 */}
                     {isFirst && (
                       <motion.div
-                        animate={{ y: [0, -7, 0] }}
-                        transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
-                        style={{ fontSize: '2rem', marginBottom: '-4px', zIndex: 3, position: 'relative', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' }}
+                        animate={{ y: [0, -6, 0] }}
+                        transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                        style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '10px',
+                          fontSize: '1.6rem',
+                          filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.9))',
+                        }}
                       >
                         👑
                       </motion.div>
                     )}
 
-                    {/* Card avatar */}
+                    {/* Bottom name strip */}
                     <div style={{
-                      width: '100%',
-                      background: `linear-gradient(160deg, ${slot.color}28 0%, rgba(255,255,255,0.04) 100%)`,
-                      border: `2px solid ${slot.color}55`,
-                      borderBottom: 'none',
-                      borderRadius: isFirst ? '20px 20px 0 0' : '16px 16px 0 0',
-                      padding: isFirst ? '1.1rem 0.9rem 0.9rem' : '0.8rem 0.75rem 0.7rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      backdropFilter: 'blur(12px)',
-                      boxShadow: `0 -4px 30px ${slot.glow}`,
+                      background: `linear-gradient(0deg, ${slot.accent}cc 0%, ${slot.accent}55 60%, transparent 100%)`,
+                      padding: '1.5rem 0.75rem 0.7rem',
                       position: 'relative',
+                      zIndex: 1,
                     }}>
-                      {/* Top shimmer */}
-                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1.5px', background: `linear-gradient(90deg, transparent, ${slot.color}99, transparent)`, borderRadius: '20px 20px 0 0' }} />
-
-                      {/* Animal */}
+                      {/* Rank label */}
                       <div style={{
-                        fontSize: isFirst ? '4.2rem' : '3.2rem',
-                        lineHeight: 1,
-                        filter: `drop-shadow(0 6px 18px ${slot.color}88)`,
+                        fontSize: '0.6rem',
+                        fontWeight: 900,
+                        letterSpacing: '0.12em',
+                        color: 'rgba(255,255,255,0.7)',
+                        marginBottom: '0.15rem',
                       }}>
-                        {animal}
+                        {levelInfo.badge} {levelInfo.name.toUpperCase()}
                       </div>
-
                       {/* Name */}
                       <div style={{
-                        fontWeight: 800,
-                        fontSize: isFirst ? '0.95rem' : '0.82rem',
+                        fontSize: isFirst ? '1rem' : '0.85rem',
+                        fontWeight: 900,
                         color: 'white',
-                        textAlign: 'center',
-                        maxWidth: '160px',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        letterSpacing: '0.06em',
+                        textShadow: '0 1px 4px rgba(0,0,0,0.5)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}>
-                        {leader.nickname || (leader.email ? leader.email.split('@')[0] : 'Ẩn danh')}
-                        {isMe && <span style={{ marginLeft: '0.3rem', fontSize: '0.58rem', background: '#6366f1', padding: '0.1rem 0.3rem', borderRadius: '999px', verticalAlign: 'middle' }}>BẠN</span>}
+                        {displayName}
+                        {isMe && <span style={{ marginLeft: '0.3rem', fontSize: '0.55rem', background: '#6366f1', padding: '0.1rem 0.3rem', borderRadius: '4px', verticalAlign: 'middle', fontStyle: 'normal' }}>BẠN</span>}
                       </div>
-
-                      {/* Badge + points */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <span style={{ fontSize: isFirst ? '1.4rem' : '1.1rem' }}>{levelInfo.badge}</span>
-                        <span style={{ fontWeight: 900, fontSize: isFirst ? '1.25rem' : '1rem', color: slot.color }}>
-                          {leader.points || 0}
-                        </span>
-                        <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>đ</span>
+                      {/* Points */}
+                      <div style={{ fontSize: isFirst ? '0.85rem' : '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.75)', marginTop: '0.1rem' }}>
+                        {(leader.points || 0)} điểm
                       </div>
-                    </div>
-
-                    {/* Podium stand */}
-                    <div style={{
-                      width: '100%',
-                      height: `${slot.standH}px`,
-                      background: `linear-gradient(180deg, ${slot.color}40 0%, ${slot.color}15 100%)`,
-                      border: `2px solid ${slot.color}44`,
-                      borderTop: `3px solid ${slot.color}88`,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.1rem',
-                    }}>
-                      <span style={{ fontSize: isFirst ? '1.8rem' : '1.4rem' }}>{slot.medal}</span>
-                      <span style={{ fontWeight: 900, fontSize: isFirst ? '1.4rem' : '1.1rem', color: slot.color, lineHeight: 1 }}>
-                        #{slot.rank}
-                      </span>
-                      <span style={{ fontSize: '0.6rem', color: slot.color, opacity: 0.8, fontWeight: 700, letterSpacing: '0.05em' }}>{slot.label}</span>
                     </div>
                   </motion.div>
                 );
@@ -198,11 +238,11 @@ export default function Leaderboard() {
           )}
 
           {loading && (
-            <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.5)' }}>⏳ Đang tải...</div>
+            <div style={{ textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.4)' }}>⏳ Đang tải...</div>
           )}
         </div>
 
-        {/* ===== BOTTOM: 3 cols ===== */}
+        {/* ===== BOTTOM 3-COL ===== */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: '210px 1fr 210px',
@@ -213,36 +253,36 @@ export default function Leaderboard() {
           alignItems: 'start',
         }}>
 
-          {/* LEFT — Stats + Level legend */}
+          {/* LEFT — Stats + Levels */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}>
-              <div style={{ borderRadius: '16px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', padding: '1.1rem' }}>
-                <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '0.9rem' }}>📊 Thống kê</div>
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+              <div style={{ borderRadius: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', padding: '1.1rem' }}>
+                <div style={{ fontSize: '0.67rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '0.9rem' }}>📊 Thống kê</div>
                 {[
                   { icon: <Users size={15} color="#6366f1" />, label: 'Thành viên', value: leaders.length, color: '#6366f1' },
                   { icon: <Star size={15} color="#fbbf24" />, label: 'Tổng điểm', value: totalPoints.toLocaleString(), color: '#fbbf24' },
                   { icon: <TrendingUp size={15} color="#22c55e" />, label: 'Điểm cao nhất', value: leaders[0]?.points || 0, color: '#22c55e' },
                 ].map((s, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
-                    <div style={{ width: '30px', height: '30px', borderRadius: '9px', background: `${s.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.icon}</div>
+                    <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: `${s.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.icon}</div>
                     <div>
                       <div style={{ fontSize: '0.95rem', fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</div>
-                      <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>{s.label}</div>
+                      <div style={{ fontSize: '0.67rem', color: 'var(--text-secondary)' }}>{s.label}</div>
                     </div>
                   </div>
                 ))}
               </div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.45 }}>
-              <div style={{ borderRadius: '16px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', padding: '1.1rem' }}>
-                <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '0.8rem' }}>🎖 Cấp độ</div>
-                {[{ badge:'🌱',name:'Tân binh',pts:'0–19đ'},{badge:'🔍',name:'Khám phá',pts:'20–49đ'},{badge:'💡',name:'Chuyên gia',pts:'50–99đ'},{badge:'👑',name:'Bậc thầy',pts:'100đ+'}].map((lvl, i) => (
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.42 }}>
+              <div style={{ borderRadius: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', padding: '1.1rem' }}>
+                <div style={{ fontSize: '0.67rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '0.8rem' }}>🎖 Cấp độ</div>
+                {[{badge:'🌱',name:'Tân binh',pts:'0–19đ'},{badge:'🔍',name:'Khám phá',pts:'20–49đ'},{badge:'💡',name:'Chuyên gia',pts:'50–99đ'},{badge:'👑',name:'Bậc thầy',pts:'100đ+'}].map((lvl, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.55rem' }}>
                     <span style={{ fontSize: '1rem' }}>{lvl.badge}</span>
                     <div>
                       <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{lvl.name}</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>{lvl.pts}</div>
+                      <div style={{ fontSize: '0.64rem', color: 'var(--text-secondary)' }}>{lvl.pts}</div>
                     </div>
                   </div>
                 ))}
@@ -250,51 +290,91 @@ export default function Leaderboard() {
             </motion.div>
           </div>
 
-          {/* CENTER — #4+ list */}
+          {/* CENTER — F1-style ranked rows #4+ */}
           <div>
             {rest.length === 0 && !loading ? (
               <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--text-secondary)', fontSize: '0.88rem', opacity: 0.7 }}>
                 🎉 Chỉ có Top 3 thành viên!
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ fontSize: '0.67rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '0.4rem', paddingLeft: '0.25rem' }}>
-                  Các thành viên còn lại
-                </div>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
                 {rest.map((leader, idx) => {
                   const realIdx = idx + 3;
                   const levelInfo = getLevelInfo(leader.points || 0);
                   const isMe = user && leader.id === user.uid;
                   const animal = ANIMAL_AVATARS[realIdx % ANIMAL_AVATARS.length];
+                  const displayName = (leader.nickname || (leader.email ? leader.email.split('@')[0] : 'Ẩn danh')).toUpperCase();
+
                   return (
                     <motion.div
                       key={leader.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.28, delay: idx * 0.04 }}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.28, delay: idx * 0.05 }}
                       style={{
-                        display: 'flex', alignItems: 'center',
-                        background: isMe ? 'rgba(99,102,241,0.08)' : 'var(--bg-secondary)',
-                        border: `1.5px solid ${isMe ? 'var(--accent-color)' : 'var(--border-color)'}`,
-                        borderRadius: '12px', overflow: 'hidden', minHeight: '58px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        borderBottom: idx < rest.length - 1 ? '1px solid var(--border-color)' : 'none',
+                        background: isMe ? 'rgba(99,102,241,0.07)' : 'transparent',
+                        transition: 'background 0.2s',
+                        minHeight: '56px',
                       }}
                     >
-                      <div style={{ width: '50px', minWidth: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid var(--border-color)', alignSelf: 'stretch' }}>
-                        <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-secondary)' }}>#{realIdx + 1}</span>
+                      {/* Rank number — F1 style big */}
+                      <div style={{
+                        width: '58px',
+                        minWidth: '58px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        alignSelf: 'stretch',
+                        borderRight: '1px solid var(--border-color)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}>
+                        {/* Faint big number behind */}
+                        <span style={{
+                          position: 'absolute',
+                          fontSize: '2.5rem',
+                          fontWeight: 900,
+                          color: 'var(--text-secondary)',
+                          opacity: 0.06,
+                          letterSpacing: '-0.05em',
+                          fontStyle: 'italic',
+                          userSelect: 'none',
+                        }}>{realIdx + 1}</span>
+                        <span style={{ fontWeight: 800, fontSize: '1.05rem', color: isMe ? 'var(--accent-color)' : 'var(--text-secondary)', position: 'relative' }}>
+                          {realIdx + 1}
+                        </span>
                       </div>
-                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.45rem 0.85rem' }}>
-                        <span style={{ fontSize: '1.85rem', lineHeight: 1, flexShrink: 0 }}>{animal}</span>
+
+                      {/* Animal + name block */}
+                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0 0.9rem' }}>
+                        <span style={{ fontSize: '1.8rem', lineHeight: 1, flexShrink: 0 }}>{animal}</span>
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-                              {leader.nickname || (leader.email ? leader.email.split('@')[0] : 'Ẩn danh')}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-primary)', letterSpacing: '0.03em' }}>
+                              {displayName}
                             </span>
-                            {isMe && <span style={{ fontSize: '0.58rem', background: 'var(--accent-color)', color: 'white', padding: '0.1rem 0.35rem', borderRadius: '999px', fontWeight: 700 }}>BẠN</span>}
+                            {isMe && (
+                              <span style={{ fontSize: '0.58rem', background: 'var(--accent-color)', color: 'white', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: 700 }}>BẠN</span>
+                            )}
                           </div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{levelInfo.name}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600, marginTop: '1px' }}>{levelInfo.name}</div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.9rem', borderLeft: '1px solid var(--border-color)', minWidth: '76px', justifyContent: 'center' }}>
+
+                      {/* Badge + points */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        padding: '0 1rem',
+                        borderLeft: '1px solid var(--border-color)',
+                        minWidth: '82px',
+                        alignSelf: 'stretch',
+                        justifyContent: 'center',
+                      }}>
                         <span style={{ fontSize: '1.15rem' }}>{levelInfo.badge}</span>
                         <div style={{ textAlign: 'right' }}>
                           <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: 1 }}>{leader.points || 0}</div>
@@ -310,47 +390,47 @@ export default function Leaderboard() {
 
           {/* RIGHT — My card + Tips */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}>
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
               {user && myInfo ? (
-                <div style={{ borderRadius: '16px', background: 'linear-gradient(135deg, rgba(99,102,241,0.14), rgba(139,92,246,0.08))', border: '1px solid rgba(99,102,241,0.3)', padding: '1.1rem' }}>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a5b4fc', marginBottom: '0.8rem' }}>🎯 Của bạn</div>
+                <div style={{ borderRadius: '12px', background: 'linear-gradient(135deg, rgba(99,102,241,0.13), rgba(139,92,246,0.07))', border: '1px solid rgba(99,102,241,0.28)', padding: '1.1rem' }}>
+                  <div style={{ fontSize: '0.67rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a5b4fc', marginBottom: '0.8rem' }}>🎯 Của bạn</div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '2.8rem', marginBottom: '0.25rem' }}>{ANIMAL_AVATARS[(myRank - 1) < 0 ? 0 : (myRank - 1) % ANIMAL_AVATARS.length]}</div>
-                    <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.9rem', marginBottom: '0.15rem' }}>
-                      {profile?.nickname || (user.email ? user.email.split('@')[0] : 'Bạn')}
+                    <div style={{ fontSize: '2.8rem', marginBottom: '0.2rem' }}>{ANIMAL_AVATARS[Math.max(0, myRank - 1) % ANIMAL_AVATARS.length]}</div>
+                    <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.88rem', marginBottom: '0.15rem' }}>
+                      {(profile?.nickname || (user.email ? user.email.split('@')[0] : 'Bạn')).toUpperCase()}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.4rem', marginBottom: '0.65rem' }}>
-                      <span style={{ fontSize: '1.25rem' }}>{myInfo.badge}</span>
-                      <span style={{ fontWeight: 900, fontSize: '1.15rem', color: '#818cf8' }}>{profile?.points || 0}</span>
-                      <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>điểm</span>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.35rem', marginBottom: '0.6rem' }}>
+                      <span style={{ fontSize: '1.2rem' }}>{myInfo.badge}</span>
+                      <span style={{ fontWeight: 900, fontSize: '1.1rem', color: '#818cf8' }}>{profile?.points || 0}</span>
+                      <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>điểm</span>
                     </div>
-                    <div style={{ background: 'rgba(99,102,241,0.18)', borderRadius: '9px', padding: '0.45rem 0.6rem', fontSize: '0.78rem', color: '#c7d2fe', fontWeight: 600 }}>
-                      {myRank > 0 ? `Hạng #${myRank} trên bảng` : 'Chưa có trên BXH'}
+                    <div style={{ background: 'rgba(99,102,241,0.18)', borderRadius: '8px', padding: '0.4rem 0.6rem', fontSize: '0.76rem', color: '#c7d2fe', fontWeight: 700 }}>
+                      {myRank > 0 ? `Hạng #${myRank}` : 'Chưa có trên BXH'}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div style={{ borderRadius: '16px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', padding: '1.1rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                <div style={{ borderRadius: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', padding: '1.1rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
                   <div style={{ fontSize: '1.8rem', marginBottom: '0.4rem' }}>🔒</div>
                   Đăng nhập để xem thứ hạng
                 </div>
               )}
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.45 }}>
-              <div style={{ borderRadius: '16px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', padding: '1.1rem' }}>
-                <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '0.8rem' }}>⚡ Kiếm điểm</div>
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.42 }}>
+              <div style={{ borderRadius: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', padding: '1.1rem' }}>
+                <div style={{ fontSize: '0.67rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '0.8rem' }}>⚡ Kiếm điểm</div>
                 {[
                   { icon: '🔧', text: 'Đóng góp công cụ', pts: '+10' },
                   { icon: '💬', text: 'Bình luận tích cực', pts: '+2' },
-                  { icon: '❤️', text: 'Nhận lượt yêu thích', pts: '+1' },
+                  { icon: '❤️', text: 'Lượt yêu thích', pts: '+1' },
                 ].map((tip, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                       <span style={{ fontSize: '0.95rem' }}>{tip.icon}</span>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{tip.text}</span>
+                      <span style={{ fontSize: '0.77rem', color: 'var(--text-secondary)' }}>{tip.text}</span>
                     </div>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#22c55e' }}>{tip.pts}</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#22c55e' }}>{tip.pts}</span>
                   </div>
                 ))}
               </div>
