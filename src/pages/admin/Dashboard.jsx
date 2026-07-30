@@ -279,6 +279,15 @@ export default function Dashboard() {
               </div>
               Thêm danh mục
             </button>
+            <button 
+              onClick={() => navigate('/admin/tools')}
+              style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s', color: '#334155', fontWeight: 500, fontSize: '0.9rem' }}
+            >
+              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#eff2ff', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CheckCircle size={16} />
+              </div>
+              Duyệt yêu cầu
+            </button>
           </div>
         </div>
 
