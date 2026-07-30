@@ -45,6 +45,7 @@ export default function Tools() {
   
   const [editingTool, setEditingTool] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchTools();
@@ -132,7 +133,20 @@ export default function Tools() {
     }
   };
 
-  const filteredTools = selectedCategory ? tools.filter(t => t.category === selectedCategory) : tools;
+  const calculateRating = (ratings) => {
+    if (!ratings) return { avg: 0, count: 0 };
+    const scores = Object.values(ratings);
+    if (scores.length === 0) return { avg: 0, count: 0 };
+    const sum = scores.reduce((a, b) => a + b, 0);
+    return { avg: (sum / scores.length).toFixed(1), count: scores.length };
+  };
+
+  const filteredTools = tools.filter(t => {
+    const matchesCategory = selectedCategory ? t.category === selectedCategory : true;
+    const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCategory && matchesSearch;
+  });
 
   if (loading) return <div style={{ padding: '2rem' }}>Đang tải...</div>;
 
@@ -144,6 +158,23 @@ export default function Tools() {
           <p style={{ color: 'var(--text-secondary)' }}>Hệ thống hiện đang có <strong>{tools.length}</strong> công cụ</p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{ position: 'relative' }}>
+            <input 
+              type="text" 
+              placeholder="Tìm kiếm công cụ..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                padding: '0.5rem 1rem', 
+                borderRadius: '8px', 
+                border: '1px solid var(--border-color)', 
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                outline: 'none',
+                width: '200px'
+              }}
+            />
+          </div>
           <select 
             value={selectedCategory} 
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -179,50 +210,58 @@ export default function Tools() {
               <th style={{ padding: '1rem' }}>Tên công cụ</th>
               <th style={{ padding: '1rem' }}>Danh mục</th>
               <th style={{ padding: '1rem' }}>Người gửi</th>
+              <th style={{ padding: '1rem' }}>Đánh giá</th>
               <th style={{ padding: '1rem' }}>Trạng thái</th>
               <th style={{ padding: '1rem', textAlign: 'right' }}>Hành động</th>
             </tr>
           </thead>
           <tbody>
-            {filteredTools.map(t => (
-              <tr key={t.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                <td style={{ padding: '1rem', maxWidth: '300px' }}>
-                  <div style={{ fontWeight: 600 }}>{t.title}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                    <TruncatedLink url={t.url} />
-                  </div>
-                </td>
-                <td style={{ padding: '1rem' }}>{t.category}</td>
-                <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{t.submittedBy === 'guest' || !t.submittedBy ? 'Hệ thống/Guest' : 'Member'}</td>
-                <td style={{ padding: '1rem' }}>
-                  <span style={{ 
-                    padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem',
-                    backgroundColor: t.status === 'pending' ? '#fef3c7' : '#d1fae5',
-                    color: t.status === 'pending' ? '#d97706' : '#10b981'
-                  }}>
-                    {t.status === 'pending' ? 'Chờ duyệt' : 'Đã duyệt'}
-                  </span>
-                </td>
-                <td style={{ padding: '1rem', textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                  {t.status === 'pending' && (
-                    <>
-                      <button onClick={() => handleUpdateStatus(t.id, 'approved')} className="btn btn-primary" style={{ padding: '0.4rem', borderRadius: '6px' }} title="Duyệt">
-                        <Check size={16} />
-                      </button>
-                      <button onClick={() => handleUpdateStatus(t.id, 'rejected')} className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '6px', color: '#ef4444' }} title="Từ chối">
-                        <X size={16} />
-                      </button>
-                    </>
-                  )}
-                  <button onClick={() => setEditingTool(t)} className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '6px' }} title="Sửa">
-                    <Edit size={16} />
-                  </button>
-                  <button onClick={() => handleDelete(t.id)} className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '6px', color: '#ef4444' }} title="Xóa">
-                    <Trash2 size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {filteredTools.map(t => {
+              const rating = calculateRating(t.ratings);
+              return (
+                <tr key={t.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <td style={{ padding: '1rem', maxWidth: '300px' }}>
+                    <div style={{ fontWeight: 600 }}>{t.title}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                      <TruncatedLink url={t.url} />
+                    </div>
+                  </td>
+                  <td style={{ padding: '1rem' }}>{t.category}</td>
+                  <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{t.submittedBy === 'guest' || !t.submittedBy ? 'Hệ thống/Guest' : 'Member'}</td>
+                  <td style={{ padding: '1rem', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>★ {rating.avg}</span> 
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '0.2rem' }}>({rating.count})</span>
+                  </td>
+                  <td style={{ padding: '1rem' }}>
+                    <span style={{ 
+                      padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem',
+                      backgroundColor: t.status === 'pending' ? '#fef3c7' : '#d1fae5',
+                      color: t.status === 'pending' ? '#d97706' : '#10b981'
+                    }}>
+                      {t.status === 'pending' ? 'Chờ duyệt' : 'Đã duyệt'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '1rem', textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                    {t.status === 'pending' && (
+                      <>
+                        <button onClick={() => handleUpdateStatus(t.id, 'approved')} className="btn btn-primary" style={{ padding: '0.4rem', borderRadius: '6px' }} title="Duyệt">
+                          <Check size={16} />
+                        </button>
+                        <button onClick={() => handleUpdateStatus(t.id, 'rejected')} className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '6px', color: '#ef4444' }} title="Từ chối">
+                          <X size={16} />
+                        </button>
+                      </>
+                    )}
+                    <button onClick={() => setEditingTool(t)} className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '6px' }} title="Sửa">
+                      <Edit size={16} />
+                    </button>
+                    <button onClick={() => handleDelete(t.id)} className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '6px', color: '#ef4444' }} title="Xóa">
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
