@@ -78,8 +78,9 @@ export default function Categories() {
       {/* Thêm danh mục */}
       <div style={{ 
         display: 'flex', gap: '1rem', marginBottom: '2.5rem', 
-        background: 'var(--bg-primary)', padding: '1.5rem', borderRadius: '16px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.03)', border: '1px solid var(--border-color)'
+        background: '#ffffff', padding: '1.5rem', borderRadius: '24px',
+        boxShadow: '10px 10px 30px rgba(112, 128, 175, 0.1), -10px -10px 30px rgba(255, 255, 255, 0.8)',
+        border: 'none'
       }}>
         <div style={{ flex: 1, position: 'relative' }}>
           <FolderOpen size={20} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
@@ -114,31 +115,31 @@ export default function Categories() {
       </div>
 
       {/* Danh sách danh mục */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
         {categories.map((cat) => (
           <div key={cat} style={{ 
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '1.25rem', borderRadius: '16px', background: 'var(--bg-primary)',
-            border: '1px solid var(--border-color)', boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-            transition: 'all 0.3s ease', cursor: 'pointer', position: 'relative', overflow: 'hidden'
+            padding: '1.5rem', borderRadius: '24px', background: '#ffffff',
+            border: 'none', 
+            boxShadow: '10px 10px 30px rgba(112, 128, 175, 0.1), -10px -10px 30px rgba(255, 255, 255, 0.8)',
+            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', cursor: 'pointer', position: 'relative'
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-4px)';
-            e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.06)';
-            e.currentTarget.style.borderColor = 'rgba(100, 84, 168, 0.3)';
+            e.currentTarget.style.transform = 'translateY(-8px)';
+            e.currentTarget.style.boxShadow = '15px 15px 40px rgba(112, 128, 175, 0.15), -15px -15px 40px rgba(255, 255, 255, 0.9)';
           }}
           onMouseLeave={e => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)';
-            e.currentTarget.style.borderColor = 'var(--border-color)';
+            e.currentTarget.style.boxShadow = '10px 10px 30px rgba(112, 128, 175, 0.1), -10px -10px 30px rgba(255, 255, 255, 0.8)';
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
               <div style={{ 
-                width: '40px', height: '40px', borderRadius: '10px', 
-                background: 'rgba(100, 84, 168, 0.08)', display: 'flex', 
-                alignItems: 'center', justifyContent: 'center', color: '#6454a8' 
+                width: '50px', height: '50px', borderRadius: '50%', 
+                background: 'linear-gradient(135deg, #f6f8fb 0%, #e5ebf4 100%)', 
+                boxShadow: 'inset 2px 2px 4px rgba(255,255,255,1), inset -2px -2px 4px rgba(112, 128, 175, 0.15)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1' 
               }}>
-                <FolderOpen size={20} />
+                <FolderOpen size={22} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '1rem' }}>{cat}</span>
@@ -167,8 +168,9 @@ export default function Categories() {
 
       {categories.length === 0 && (
         <div style={{ 
-          padding: '4rem 2rem', textAlign: 'center', background: 'var(--bg-primary)', 
-          borderRadius: '16px', border: '1px dashed var(--border-color)', marginTop: '1rem'
+          padding: '4rem 2rem', textAlign: 'center', background: '#ffffff', 
+          borderRadius: '24px', border: 'none', marginTop: '1rem',
+          boxShadow: '10px 10px 30px rgba(112, 128, 175, 0.1), -10px -10px 30px rgba(255, 255, 255, 0.8)'
         }}>
           <AlertCircle size={48} color="var(--text-muted)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
           <h3 style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Chưa có danh mục nào</h3>
