@@ -22,22 +22,20 @@ export default function ProfileModal({ isOpen, onClose, user, profile, tools = [
   }
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 1000
-    }}>
-      <div style={{
-        background: 'var(--bg-primary)',
-        width: '100%', maxWidth: '600px',
-        borderRadius: '16px',
-        padding: '2rem',
-        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-        position: 'relative',
-        maxHeight: '85vh',
-        overflowY: 'auto'
-      }}>
+    <div 
+      className="modal-overlay" 
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div 
+        className="modal-content glass-panel"
+        style={{
+          width: '100%', maxWidth: '600px',
+          borderRadius: '16px',
+          padding: '2rem',
+          maxHeight: '85vh',
+          overflowY: 'auto'
+        }}
+      >
         <button 
           onClick={onClose}
           style={{
