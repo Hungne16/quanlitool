@@ -124,12 +124,16 @@ export default function Users() {
     setAddLoading(false);
   };
 
+  const [selectedRole, setSelectedRole] = useState('');
+
   // Allow super_admin to do everything, admin can only manage members/editors/guests
   const canManageUser = (targetRole) => {
     if (profile?.role === 'super_admin') return true;
     if (profile?.role === 'admin' && (targetRole === 'member' || targetRole === 'editor' || targetRole === 'guest')) return true;
     return false;
   };
+
+  const filteredUsers = selectedRole ? users.filter(u => u.role === selectedRole) : users;
 
   if (loading && users.length === 0) return <div style={{ padding: '2rem' }}>Đang tải danh sách người dùng...</div>;
 
@@ -140,13 +144,35 @@ export default function Users() {
           <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Quản lý Người dùng</h1>
           <p style={{ color: 'var(--text-secondary)' }}>Hệ thống hiện đang có <strong>{users.length}</strong> người dùng</p>
         </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="btn btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '8px' }}
-        >
-          <Plus size={18} /> Thêm Người Dùng Mới
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <select 
+            value={selectedRole} 
+            onChange={(e) => setSelectedRole(e.target.value)}
+            style={{ 
+              padding: '0.5rem 1rem', 
+              borderRadius: '8px', 
+              border: '1px solid var(--border-color)', 
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="">Tất cả vai trò</option>
+            <option value="super_admin">Super Admin</option>
+            <option value="admin">Admin</option>
+            <option value="editor">Editor</option>
+            <option value="member">Member</option>
+            <option value="guest">Guest</option>
+          </select>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="btn btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '8px' }}
+          >
+            <Plus size={18} /> Thêm Người Dùng Mới
+          </button>
+        </div>
       </div>
       
       <div style={{ backgroundColor: 'var(--surface-color)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'x-auto' }}>
@@ -161,7 +187,7 @@ export default function Users() {
             </tr>
           </thead>
           <tbody>
-            {users.map(u => (
+            {filteredUsers.map(u => (
               <tr key={u.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                 <td style={{ padding: '1rem', fontWeight: 500 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

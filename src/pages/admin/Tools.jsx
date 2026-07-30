@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { Check, X, Trash2, Edit, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import AddToolModal from '../../components/AddToolModal';
@@ -113,6 +113,25 @@ export default function Tools() {
     }
   };
 
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const handleSaveNew = async (newTool) => {
+    try {
+      // Add directly as approved
+      const dataToSave = {
+        ...newTool,
+        status: 'approved',
+        createdAt: new Date().toISOString(),
+        submittedBy: 'admin'
+      };
+      await addDoc(collection(db, 'tools'), dataToSave);
+      setIsAddModalOpen(false);
+      fetchTools();
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi khi thêm công cụ.');
+    }
+  };
+
   const filteredTools = selectedCategory ? tools.filter(t => t.category === selectedCategory) : tools;
 
   if (loading) return <div style={{ padding: '2rem' }}>Đang tải...</div>;
@@ -124,7 +143,7 @@ export default function Tools() {
           <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Quản lý Công cụ</h1>
           <p style={{ color: 'var(--text-secondary)' }}>Hệ thống hiện đang có <strong>{tools.length}</strong> công cụ</p>
         </div>
-        <div>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <select 
             value={selectedCategory} 
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -143,6 +162,13 @@ export default function Tools() {
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
+          <button 
+            className="btn btn-primary"
+            onClick={() => setIsAddModalOpen(true)}
+            style={{ padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600 }}
+          >
+            + Thêm công cụ
+          </button>
         </div>
       </div>
       
@@ -208,6 +234,15 @@ export default function Tools() {
           onSave={handleSaveEdit}
           categories={categories}
           initialData={editingTool}
+        />
+      )}
+
+      {isAddModalOpen && (
+        <AddToolModal 
+          isOpen={true}
+          onClose={() => setIsAddModalOpen(false)}
+          onSave={handleSaveNew}
+          categories={categories}
         />
       )}
     </div>
