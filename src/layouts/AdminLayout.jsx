@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { getUnreadReports, markReportAsRead } from '../utils/storage';
+import VerticalDock from '../components/VerticalDock';
 import { 
   Users, LayoutDashboard, Settings, Layers, LogOut, ArrowLeft, 
   PlusSquare, Bell, Search, BarChart2, CheckSquare, Server,
@@ -68,19 +69,22 @@ export default function AdminLayout() {
     }}>
       {/* Left Sidebar */}
       <aside style={{ 
-        width: '260px',
+        width: '90px',
         background: '#fff',
         borderRight: '1px solid #e2e8f0',
         display: 'flex',
         flexDirection: 'column',
+        alignItems: 'center',
         padding: '1.5rem 0',
         position: 'sticky',
         top: 0,
         height: '100vh',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        overflowX: 'visible',
+        zIndex: 40
       }}>
         {/* Logo */}
-        <div style={{ padding: '0 1.5rem', marginBottom: '2.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ marginBottom: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ 
             width: '40px', height: '40px', borderRadius: '12px', 
             background: '#6366f1', color: 'white', 
@@ -89,52 +93,15 @@ export default function AdminLayout() {
           }}>
             <Settings size={22} />
           </div>
-          <div>
-            <h1 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>QuanliTool</h1>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>Admin</span>
-          </div>
         </div>
 
         {/* Navigation */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0 1rem' }}>
-          {navItems.map(item => {
-            const isActive = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path));
-            return (
-              <Link 
-                key={item.path}
-                to={item.path}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '1rem',
-                  padding: '0.85rem 1rem',
-                  borderRadius: '12px',
-                  color: isActive ? '#6366f1' : '#64748b',
-                  backgroundColor: isActive ? '#eff2ff' : 'transparent',
-                  fontWeight: isActive ? 600 : 500,
-                  fontSize: '0.95rem',
-                  textDecoration: 'none',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor = '#f8fafc';
-                    e.currentTarget.style.color = '#475569';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#64748b';
-                  }
-                }}
-              >
-                {item.icon}
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
+        <div style={{ width: '100%', flex: 1, display: 'flex', justifyContent: 'center' }}>
+          <VerticalDock items={navItems} />
+        </div>
 
-        {/* System Stats Widget */}
+        {/* System Stats Widget - Hidden for slim sidebar */}
+        {false && (
         <div style={{ marginTop: 'auto', padding: '0 1.5rem', marginBottom: '1.5rem' }}>
           <div style={{ 
             background: '#f8fafc', borderRadius: '16px', padding: '1.25rem',
@@ -173,6 +140,7 @@ export default function AdminLayout() {
             </button>
           </div>
         </div>
+        )}
       </aside>
 
       {/* Main Content Area */}

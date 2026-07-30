@@ -1,0 +1,77 @@
+.vertical-dock {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center icons in the dock */
+  padding: 1rem 0;
+}
+
+.dock-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dock-icon-inner {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+}
+
+.dock-icon-button {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  background-color: transparent;
+  outline: none;
+  text-decoration: none;
+  box-shadow: none;
+}
+
+.dock-icon-button svg {
+  width: 55%;
+  height: 55%;
+  transition: color 0.15s ease;
+}
+
+.dock-icon-button:hover {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.dock-icon-button.active {
+  background-color: #eff2ff;
+  color: #6366f1;
+}
+
+.dock-tooltip {
+  pointer-events: none;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  z-index: 50;
+  /* tooltip will be positioned via style={{ top, left }} */
+}
+
+.dock-tooltip-text {
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: #ffffff;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+}
+
+.dock-tooltip-arrow {
+  margin-right: -1px;
+  color: #fff;
+  filter: drop-shadow(-1px 0px 0px rgba(0,0,0,0.08));
+}
