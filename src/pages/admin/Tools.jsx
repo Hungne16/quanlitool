@@ -83,7 +83,10 @@ export default function Tools() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '2rem' }}>Quản lý Công cụ</h1>
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Quản lý Công cụ</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Hệ thống hiện đang có <strong>{tools.length}</strong> công cụ</p>
+      </div>
       
       <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>

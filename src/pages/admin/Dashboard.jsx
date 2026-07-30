@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../config/firebase';
+import { getCategories } from '../../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, PenTool, Folder, TrendingUp, 
@@ -27,18 +28,14 @@ export default function Dashboard() {
       try {
         const usersSnap = await getDocs(collection(db, 'users'));
         const toolsSnap = await getDocs(collection(db, 'tools'));
+        const categoriesData = await getCategories();
         
-        let uniqueCategories = new Set();
         let active = 0;
         let maintenance = 0;
         let locked = 0;
 
         toolsSnap.forEach(doc => {
           const data = doc.data();
-          if (data.category) {
-            uniqueCategories.add(data.category);
-          }
-          // Assuming we might have a status field in the future. For now, all are 'active' unless specified.
           if (data.status === 'Bảo trì') maintenance++;
           else if (data.status === 'Tạm khóa') locked++;
           else active++;
@@ -47,7 +44,7 @@ export default function Dashboard() {
         setStats({
           users: usersSnap.size || 0,
           tools: toolsSnap.size || 0,
-          categories: uniqueCategories.size || 0,
+          categories: categoriesData.length || 0,
           activeTools: active,
           maintenanceTools: maintenance,
           lockedTools: locked
@@ -105,14 +102,13 @@ export default function Dashboard() {
           {/* Overview Stats */}
           <div style={{ ...cardStyle }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '1.5rem' }}>Tổng quan hệ thống</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', textAlign: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', textAlign: 'center' }}>
               <div>
                 <div style={{ width: '48px', height: '48px', background: '#eff2ff', color: '#6366f1', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
                   <Users size={24} />
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, marginBottom: '0.5rem' }}>Người dùng</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e293b' }}>{stats.users}</div>
-                <div style={{ fontSize: '0.75rem', color: '#22c55e', marginTop: '0.5rem', fontWeight: 500 }}>+ 18% so với tháng trước</div>
               </div>
               <div>
                 <div style={{ width: '48px', height: '48px', background: '#eff2ff', color: '#6366f1', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
@@ -120,7 +116,6 @@ export default function Dashboard() {
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, marginBottom: '0.5rem' }}>Công cụ</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e293b' }}>{stats.tools}</div>
-                <div style={{ fontSize: '0.75rem', color: '#22c55e', marginTop: '0.5rem', fontWeight: 500 }}>+ 12% so với tháng trước</div>
               </div>
               <div>
                 <div style={{ width: '48px', height: '48px', background: '#eff2ff', color: '#6366f1', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
@@ -128,15 +123,6 @@ export default function Dashboard() {
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, marginBottom: '0.5rem' }}>Danh mục</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e293b' }}>{stats.categories}</div>
-                <div style={{ fontSize: '0.75rem', color: '#22c55e', marginTop: '0.5rem', fontWeight: 500 }}>+ 8% so với tháng trước</div>
-              </div>
-              <div>
-                <div style={{ width: '48px', height: '48px', background: '#eff2ff', color: '#6366f1', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-                  <TrendingUp size={24} />
-                </div>
-                <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, marginBottom: '0.5rem' }}>Tăng trưởng</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e293b' }}>+18%</div>
-                <div style={{ fontSize: '0.75rem', color: '#22c55e', marginTop: '0.5rem', fontWeight: 500 }}>+ so với tháng trước</div>
               </div>
             </div>
           </div>

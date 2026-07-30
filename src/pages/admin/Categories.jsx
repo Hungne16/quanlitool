@@ -41,7 +41,10 @@ export default function Categories() {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '600px' }}>
-      <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '2rem' }}>Quản lý Danh mục</h1>
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Quản lý Danh mục</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Hệ thống hiện đang có <strong>{categories.length}</strong> danh mục</p>
+      </div>
       
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
         <input 

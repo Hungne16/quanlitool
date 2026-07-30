@@ -6,7 +6,7 @@ import { auth } from '../config/firebase';
 import { 
   Users, LayoutDashboard, Settings, Layers, LogOut, ArrowLeft, 
   PlusSquare, Bell, Search, BarChart2, CheckSquare, Server,
-  Cpu, HardDrive, Zap, ChevronDown
+  Cpu, HardDrive, Zap, ChevronDown, Home
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -178,6 +178,19 @@ export default function AdminLayout() {
 
           {/* Right Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <button 
+              onClick={() => navigate('/')}
+              style={{ 
+                background: '#f1f5f9', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#334155',
+                fontSize: '0.85rem', fontWeight: 600, padding: '0.5rem 1rem', borderRadius: '20px',
+                transition: 'all 0.2s'
+              }}
+              title="Về trang khách"
+            >
+              <Home size={16} /> Trang khách
+            </button>
+
             <div style={{ position: 'relative', cursor: 'pointer' }}>
               <Bell size={22} color="#64748b" />
               <div style={{ 

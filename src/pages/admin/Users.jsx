@@ -136,7 +136,10 @@ export default function Users() {
   return (
     <div style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>Quản lý Người dùng</h1>
+        <div>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Quản lý Người dùng</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Hệ thống hiện đang có <strong>{users.length}</strong> người dùng</p>
+        </div>
         <button 
           onClick={() => setShowAddModal(true)}
           className="btn btn-primary"
