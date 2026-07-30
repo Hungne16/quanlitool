@@ -60,8 +60,18 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isActive() && 
         (isAdmin() || request.resource.data.status == 'pending');
       
-      // Only admins can update or delete tools
+      // Only admins can update or delete tools completely
+      // Regular users can ONLY update the ratings field
+      allow update: if isAdmin() || (isAuthenticated() && isActive() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ratings']));
+      
+      allow delete: if isAdmin();
+    }
+
+    // --- REPORTS COLLECTION ---
+    match /reports/{reportId} {
+      allow read: if isAdmin();
       allow update, delete: if isAdmin();
+      allow create: if isAuthenticated() && isActive();
     }
 
     // --- SETTINGS COLLECTION ---
