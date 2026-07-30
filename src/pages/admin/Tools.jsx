@@ -1,9 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import { Check, X, Trash2, Edit } from 'lucide-react';
+import { Check, X, Trash2, Edit, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import AddToolModal from '../../components/AddToolModal';
 import { getCategories } from '../../utils/storage';
+
+const TruncatedLink = ({ url }) => {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = url.length > 50;
+  
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem', maxWidth: '300px' }}>
+      <a href={url} target="_blank" rel="noreferrer" style={{ 
+        color: 'var(--accent-color)', 
+        display: 'inline-block',
+        whiteSpace: expanded ? 'normal' : 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        maxWidth: '100%',
+        wordBreak: 'break-all',
+        textDecoration: 'none'
+      }}>
+        {url}
+      </a>
+      {isLong && (
+        <button 
+          onClick={() => setExpanded(!expanded)} 
+          style={{ 
+            background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', 
+            fontSize: '0.75rem', padding: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' 
+          }}
+        >
+          {expanded ? <><ChevronUp size={12}/> Ẩn bớt</> : <><ChevronDown size={12}/> Xem thêm</>}
+        </button>
+      )}
+    </div>
+  );
+};
 
 export default function Tools() {
   const [tools, setTools] = useState([]);
@@ -102,10 +135,10 @@ export default function Tools() {
           <tbody>
             {tools.map(t => (
               <tr key={t.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                <td style={{ padding: '1rem' }}>
+                <td style={{ padding: '1rem', maxWidth: '300px' }}>
                   <div style={{ fontWeight: 600 }}>{t.title}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    <a href={t.url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-color)' }}>{t.url}</a>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                    <TruncatedLink url={t.url} />
                   </div>
                 </td>
                 <td style={{ padding: '1rem' }}>{t.category}</td>
