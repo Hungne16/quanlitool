@@ -12,6 +12,7 @@ import AuthModal from '../../components/AuthModal';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 import { Link } from 'react-router-dom';
+import { getLevelInfo } from '../../utils/gamification';
 
 export default function Home() {
   const [tools, setTools] = useState([]);
@@ -164,8 +165,18 @@ export default function Home() {
             </button>
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                {profile && (
+                  <div style={{ 
+                    display: 'flex', alignItems: 'center', gap: '0.4rem', 
+                    background: 'var(--bg-secondary)', padding: '0.2rem 0.6rem', 
+                    borderRadius: '999px', border: '1px solid var(--border-color)',
+                    fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)'
+                  }} title={`${profile.points || 0} điểm`}>
+                    {getLevelInfo(profile.points).badge} {getLevelInfo(profile.points).name}
+                  </div>
+                )}
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  {profile?.role === 'admin' ? '👑 ' : ''}{user.email}
+                  {user.email}
                 </span>
                 {isAdmin && (
                   <Link to="/admin" className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', textDecoration: 'none' }}>

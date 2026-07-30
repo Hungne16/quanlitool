@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExternalLink, Trash2, ArrowUpRight, Heart, Play, X, Star, Flag } from 'lucide-react';
+import { ExternalLink, Trash2, ArrowUpRight, Heart, Play, X, Star, Flag, Share2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { rateTool, reportTool } from '../utils/storage';
 
@@ -129,11 +129,30 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
             position: 'relative',
             width: '100%'
           }}>
-            {/* Actions: Favorite (always) + Delete (admin only) */}
+            {/* Actions: Favorite (always) + Share + Delete (admin only) */}
             <div style={{ 
               position: 'absolute', top: '12px', right: '12px', 
               display: 'flex', gap: '0.5rem', zIndex: 10 
             }}>
+              <button 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  const url = `${window.location.origin}?tool=${tool.id}`;
+                  navigator.clipboard.writeText(url);
+                  alert('Đã copy link công cụ!');
+                }} 
+                style={{
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                  color: '#fff'
+                }}
+                title="Chia sẻ link"
+              >
+                <Share2 size={16} />
+              </button>
+
               <button 
                 onClick={(e) => { e.stopPropagation(); onToggleFavorite(tool); }} 
                 style={{

@@ -35,8 +35,8 @@ service cloud.firestore {
       // Users can create their own profile upon registration
       allow create: if isAuthenticated() && request.auth.uid == userId;
       
-      // Users can update their own favorites
-      allow update: if isAuthenticated() && request.auth.uid == userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites']);
+      // Users can update their own favorites and points
+      allow update: if isAuthenticated() && request.auth.uid == userId && request.resource.data.diff(resource.data).affectedKeys().hasAny(['favorites', 'points']);
       
       // Admins can update/delete any user profile
       allow update, delete: if isAdmin();

@@ -84,10 +84,31 @@ export const saveTool = async (tool) => {
       createdAt: new Date().toISOString()
     };
     const docRef = await addDoc(collection(db, "tools"), newTool);
+    
+    // Add points to user if they are logged in
+    if (tool.submittedBy && tool.submittedBy !== 'guest') {
+      await addPoints(tool.submittedBy, 10);
+    }
+    
     return { id: docRef.id, ...newTool };
   } catch (error) {
     console.error("Error saving tool:", error);
     throw error;
+  }
+};
+
+export const addPoints = async (uid, amount) => {
+  if (!uid || uid === 'guest') return;
+  try {
+    const userRef = doc(db, "users", uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      const currentPoints = data.points || 0;
+      await updateDoc(userRef, { points: currentPoints + amount });
+    }
+  } catch (error) {
+    console.error("Error adding points:", error);
   }
 };
 
@@ -142,8 +163,13 @@ export const rateTool = async (toolId, userId, score) => {
     if (toolSnap.exists()) {
       const toolData = toolSnap.data();
       const ratings = toolData.ratings || {};
+      const isNewRating = !(userId in ratings);
       ratings[userId] = score;
       await updateDoc(toolRef, { ratings });
+      
+      if (isNewRating) {
+        await addPoints(userId, 2);
+      }
     }
   } catch (error) {
     console.error("Error rating tool:", error);
