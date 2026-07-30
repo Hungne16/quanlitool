@@ -90,6 +90,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
           style={{ 
             maxWidth: '900px', 
             width: '95%',
+            maxHeight: '95vh',
             display: 'flex', 
             padding: 0, 
             overflow: 'hidden',
@@ -106,16 +107,19 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
             justifyContent: 'center',
             alignItems: 'center',
             borderRight: '1px solid var(--border-color)',
-            position: 'relative'
+            position: 'relative',
+            overflow: 'hidden'
           }} className="hidden md:flex">
             
-            <div style={{ width: '100%', maxWidth: '320px', pointerEvents: 'none' }}>
-              <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+            <div style={{ width: '100%', maxWidth: '320px', pointerEvents: 'none', maxHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ marginBottom: '1.5rem', textAlign: 'center', flexShrink: 0 }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>✨ Live Preview</h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Thẻ sẽ hiển thị như thế này</p>
               </div>
               
-              <ToolCard tool={previewTool} isAdmin={false} />
+              <div style={{ flex: 1, minHeight: 0 }}>
+                <ToolCard tool={previewTool} isAdmin={false} />
+              </div>
             </div>
 
             {/* Decorative background element */}
@@ -128,20 +132,21 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
           </div>
 
           {/* Right Side - Form */}
-          <div style={{ flex: '1', padding: '2.5rem', position: 'relative' }}>
+          <div style={{ flex: '1', padding: '2rem 2.5rem', position: 'relative', display: 'flex', flexDirection: 'column', maxHeight: '95vh' }}>
             <button 
               className="modal-close" 
               onClick={onClose}
-              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'var(--surface-hover)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'var(--surface-hover)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', zIndex: 10 }}
             >
               <X size={18} />
             </button>
 
-            <h2 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 700 }}>
+            <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 700, flexShrink: 0 }}>
               {initialData ? 'Sửa công cụ' : 'Thêm công cụ mới'}
             </h2>
             
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }} className="custom-scrollbar">
               
               <div className="input-group" style={{ marginBottom: 0 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
@@ -221,7 +226,8 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
                 <textarea name="detailedDescription" className="input-control" value={formData.detailedDescription || ''} onChange={handleChange} placeholder="Mô tả chi tiết hơn về các tính năng, cách dùng, giá cả..." rows={4} style={{ resize: 'vertical', padding: '0.75rem 1rem', borderRadius: '12px' }} />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', flexShrink: 0 }}>
                 <button type="button" className="btn btn-ghost" onClick={onClose} style={{ padding: '0.75rem 1.5rem', borderRadius: '12px' }}>Hủy</button>
                 <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', background: 'linear-gradient(135deg, #7463c6, #ff7eb3)', border: 'none', boxShadow: '0 10px 20px rgba(116, 99, 198, 0.3)' }}>
                   {initialData ? 'Cập nhật' : 'Lưu công cụ'}
