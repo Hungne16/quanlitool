@@ -44,6 +44,7 @@ export default function Tools() {
   const [categories, setCategories] = useState([]);
   
   const [editingTool, setEditingTool] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   useEffect(() => {
     fetchTools();
@@ -112,13 +113,37 @@ export default function Tools() {
     }
   };
 
+  const filteredTools = selectedCategory ? tools.filter(t => t.category === selectedCategory) : tools;
+
   if (loading) return <div style={{ padding: '2rem' }}>Đang tải...</div>;
 
   return (
     <div style={{ padding: '2rem' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Quản lý Công cụ</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Hệ thống hiện đang có <strong>{tools.length}</strong> công cụ</p>
+      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Quản lý Công cụ</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Hệ thống hiện đang có <strong>{tools.length}</strong> công cụ</p>
+        </div>
+        <div>
+          <select 
+            value={selectedCategory} 
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            style={{ 
+              padding: '0.5rem 1rem', 
+              borderRadius: '8px', 
+              border: '1px solid var(--border-color)', 
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="">Tất cả danh mục</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
       </div>
       
       <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
@@ -133,7 +158,7 @@ export default function Tools() {
             </tr>
           </thead>
           <tbody>
-            {tools.map(t => (
+            {filteredTools.map(t => (
               <tr key={t.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                 <td style={{ padding: '1rem', maxWidth: '300px' }}>
                   <div style={{ fontWeight: 600 }}>{t.title}</div>
