@@ -8,6 +8,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     title: '',
     url: '',
     description: '',
+    detailedDescription: '',
     category: '',
     imageUrl: '',
     tags: []
@@ -60,7 +61,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     }
 
     await onSave({ ...formData, url: finalUrl });
-    setFormData({ title: '', url: '', description: '', category: categories[0] || '', imageUrl: '', tags: [] });
+    setFormData({ title: '', url: '', description: '', detailedDescription: '', category: categories[0] || '', imageUrl: '', tags: [] });
     setTagInput('');
     onClose();
   };
@@ -71,6 +72,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     title: formData.title || 'Tên công cụ...',
     url: formData.url || 'https://example.com',
     description: formData.description || 'Mô tả ngắn gọn về công cụ của bạn sẽ hiển thị ở đây...',
+    detailedDescription: formData.detailedDescription,
     category: formData.category || 'Category',
     imageUrl: formData.imageUrl,
     tags: formData.tags
@@ -209,7 +211,14 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
                   <FileText size={16} color="var(--accent-color)" /> Mô tả ngắn gọn
                 </label>
-                <textarea name="description" className="input-control" value={formData.description} onChange={handleChange} placeholder="Công cụ này dùng để làm gì?" rows={3} style={{ resize: 'vertical', padding: '0.75rem 1rem', borderRadius: '12px' }} />
+                <textarea name="description" className="input-control" value={formData.description} onChange={handleChange} placeholder="Công cụ này dùng để làm gì? (Tối đa 3 dòng)" rows={2} style={{ resize: 'vertical', padding: '0.75rem 1rem', borderRadius: '12px' }} />
+              </div>
+
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+                  <FileText size={16} color="var(--accent-color)" /> Mô tả chi tiết (Nội dung thẻ lật 180 độ)
+                </label>
+                <textarea name="detailedDescription" className="input-control" value={formData.detailedDescription || ''} onChange={handleChange} placeholder="Mô tả chi tiết hơn về các tính năng, cách dùng, giá cả..." rows={4} style={{ resize: 'vertical', padding: '0.75rem 1rem', borderRadius: '12px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>

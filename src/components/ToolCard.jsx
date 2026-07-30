@@ -23,6 +23,16 @@ const getGradient = (text) => {
 
 export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) {
   const [flipped, setFlipped] = useState(false);
+  const [isDescriptionLong, setIsDescriptionLong] = useState(false);
+
+  React.useEffect(() => {
+    // Show "Xem chi tiết" if detailedDescription exists OR description is long
+    if (tool.detailedDescription || (tool.description && tool.description.length > 120)) {
+      setIsDescriptionLong(true);
+    } else {
+      setIsDescriptionLong(false);
+    }
+  }, [tool.description, tool.detailedDescription]);
 
   const getDomain = (url) => {
     try {
@@ -36,8 +46,6 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
   const domain = getDomain(tool.url);
   const imageUrl = tool.imageUrl || (domain ? `https://logo.clearbit.com/${domain}` : null);
   const headerGradient = getGradient(tool.title);
-  
-  const isDescriptionLong = tool.description && tool.description.length > 100;
 
   return (
     <div style={{ perspective: '1000px', height: '100%' }}>
@@ -250,31 +258,63 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
         <div style={{
           backfaceVisibility: 'hidden',
           position: 'absolute',
-          top: 0, left: 0,
-          width: '100%', height: '100%',
-          transform: 'rotateY(180deg)',
-          background: 'var(--bg-primary)',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'var(--card-bg)',
           borderRadius: '24px',
-          padding: '1.5rem',
-          display: 'flex', 
+          overflow: 'hidden',
+          display: 'flex',
           flexDirection: 'column',
-          boxShadow: 'var(--shadow-md)',
-          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--shadow-lg)',
+          transform: 'rotateY(180deg)',
           zIndex: flipped ? 1 : 0
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{tool.title}</h3>
+          
+          {/* Header of Back Face */}
+          <div style={{
+            padding: '1.25rem',
+            background: 'rgba(100, 84, 168, 0.05)',
+            borderBottom: '1px solid var(--border-color)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+              Mô tả chi tiết
+            </h3>
             <button 
               onClick={(e) => { e.preventDefault(); setFlipped(false); }}
-              style={{ background: '#f1f5f9', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.4rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              title="Đóng"
+              style={{
+                background: 'var(--surface-hover)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: 'var(--text-secondary)'
+              }}
             >
               <X size={16} />
             </button>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            {tool.description}
+          
+          <div style={{ flex: 1, padding: '1.25rem', overflowY: 'auto' }} className="custom-scrollbar">
+            <p style={{
+              fontSize: '0.9rem',
+              color: 'var(--text-secondary)',
+              lineHeight: 1.6,
+              margin: 0,
+              whiteSpace: 'pre-wrap'
+            }}>
+              {tool.detailedDescription || tool.description}
+            </p>
           </div>
+          
         </div>
 
       </div>
