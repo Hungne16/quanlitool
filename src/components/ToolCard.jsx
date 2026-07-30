@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { ExternalLink, Trash2, ArrowUpRight, Heart, Play, X } from 'lucide-react';
+import { ExternalLink, Trash2, ArrowUpRight, Heart, Play, X, Star, Flag } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { rateTool, reportTool } from '../utils/storage';
 
 const gradients = [
   'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
@@ -24,6 +26,11 @@ const getGradient = (text) => {
 export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) {
   const [flipped, setFlipped] = useState(false);
   const [isDescriptionLong, setIsDescriptionLong] = useState(false);
+  
+  // Rating and Reporting State
+  const { user } = useAuth();
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportReason, setReportReason] = useState('');
 
   React.useEffect(() => {
     // Show "Xem chi tiết" if detailedDescription exists OR description is long
@@ -33,6 +40,51 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
       setIsDescriptionLong(false);
     }
   }, [tool.description, tool.detailedDescription]);
+
+  const handleRate = async (score) => {
+    if (!user) {
+      alert("Vui lòng đăng nhập để đánh giá công cụ.");
+      return;
+    }
+    try {
+      await rateTool(tool.id, user.uid, score);
+      // Giả lập UI update nhanh mà ko cần reload trang (hoặc reload data)
+      if (!tool.ratings) tool.ratings = {};
+      tool.ratings[user.uid] = score;
+      // ép trigger render bằng cách toggle flipped hoặc state giả
+      setFlipped(f => !f); setTimeout(() => setFlipped(f => !f), 10);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleReportSubmit = async () => {
+    if (!user) {
+      alert("Vui lòng đăng nhập để báo cáo công cụ.");
+      return;
+    }
+    if (!reportReason.trim()) return;
+    
+    try {
+      await reportTool(tool.id, user.uid, reportReason, tool.title);
+      alert("Báo cáo của bạn đã được gửi tới Admin.");
+      setIsReporting(false);
+      setReportReason('');
+    } catch (e) {
+      alert("Có lỗi xảy ra khi gửi báo cáo.");
+    }
+  };
+
+  const calculateRating = () => {
+    if (!tool.ratings) return { avg: 0, count: 0 };
+    const scores = Object.values(tool.ratings);
+    if (scores.length === 0) return { avg: 0, count: 0 };
+    const sum = scores.reduce((a, b) => a + b, 0);
+    return { avg: (sum / scores.length).toFixed(1), count: scores.length };
+  };
+
+  const ratingInfo = calculateRating();
+  const userRating = user && tool.ratings ? tool.ratings[user.uid] : 0;
 
   const getDomain = (url) => {
     try {
@@ -77,25 +129,26 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
             position: 'relative',
             width: '100%'
           }}>
-            {/* Admin / Favorite Actions */}
-            {isAdmin && (
-              <div style={{ 
-                position: 'absolute', top: '12px', right: '12px', 
-                display: 'flex', gap: '0.5rem', zIndex: 10 
-              }}>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); onToggleFavorite(tool); }} 
-                  style={{
-                    width: '32px', height: '32px', borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                    color: tool.isFavorite ? '#ef4444' : '#fff'
-                  }}
-                  title={tool.isFavorite ? "Bỏ yêu thích" : "Yêu thích"}
-                >
-                  <Heart size={16} fill={tool.isFavorite ? '#ef4444' : 'none'} />
-                </button>
+            {/* Actions: Favorite (always) + Delete (admin only) */}
+            <div style={{ 
+              position: 'absolute', top: '12px', right: '12px', 
+              display: 'flex', gap: '0.5rem', zIndex: 10 
+            }}>
+              <button 
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite(tool); }} 
+                style={{
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                  color: tool.isFavorite ? '#ef4444' : '#fff'
+                }}
+                title={tool.isFavorite ? "Bỏ yêu thích" : "Yêu thích"}
+              >
+                <Heart size={16} fill={tool.isFavorite ? '#ef4444' : 'none'} />
+              </button>
+              
+              {isAdmin && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); onDelete(tool.id); }} 
                   style={{
@@ -109,8 +162,8 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
                 >
                   <Trash2 size={16} />
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Content Area */}
@@ -147,7 +200,7 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
             </div>
 
             {/* Title and Badge */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{tool.title}</h3>
               <span style={{
                 fontSize: '0.7rem',
@@ -159,6 +212,23 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
                 whiteSpace: 'nowrap'
               }}>
                 {tool.category}
+              </span>
+            </div>
+
+            {/* Rating Stars */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginBottom: '0.5rem' }}>
+              {[1, 2, 3, 4, 5].map(star => (
+                <button
+                  key={star}
+                  onClick={(e) => { e.preventDefault(); handleRate(star); }}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: star <= (userRating || Math.round(ratingInfo.avg)) ? '#fbbf24' : '#cbd5e1' }}
+                  title={`Đánh giá ${star} sao`}
+                >
+                  <Star size={14} fill={star <= (userRating || Math.round(ratingInfo.avg)) ? '#fbbf24' : 'none'} />
+                </button>
+              ))}
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>
+                ({ratingInfo.count > 0 ? ratingInfo.avg : 'Chưa có'})
               </span>
             </div>
 
@@ -218,9 +288,18 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
               borderTop: '1px solid var(--border-color)',
               paddingTop: '1rem'
             }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                {domain || 'No URL'}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                  {domain || 'No URL'}
+                </span>
+                <button 
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsReporting(true); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  title="Báo cáo công cụ này"
+                >
+                  <Flag size={14} />
+                </button>
+              </div>
 
               <a 
                 href={tool.url} 
@@ -241,13 +320,13 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
                   transition: 'all 0.3s ease',
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
-                  maxWidth: '36px' /* Default state: circle */
+                  maxWidth: '36px'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', flexShrink: 0 }}>
                   <ArrowUpRight size={16} />
                 </div>
-                <span className="btn-text" style={{ opacity: 0, transition: 'opacity 0.2s', paddingRight: '0.5rem' }}>Truy cập</span>
+                <span className="tool-action-text" style={{ opacity: 0, transition: 'opacity 0.2s', width: 0, overflow: 'hidden' }}>Truy cập ngay</span>
               </a>
             </div>
 
@@ -318,6 +397,36 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
         </div>
 
       </div>
+      
+      {/* Report Overlay */}
+      {isReporting && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'var(--card-bg)', zIndex: 50, borderRadius: '24px',
+          display: 'flex', flexDirection: 'column', padding: '1.5rem',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h4 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1rem', fontWeight: 600 }}>Báo cáo công cụ</h4>
+            <button onClick={() => setIsReporting(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+              <X size={16} />
+            </button>
+          </div>
+          <textarea 
+            value={reportReason}
+            onChange={e => setReportReason(e.target.value)}
+            placeholder="Vấn đề bạn gặp phải là gì? (Ví dụ: link hỏng, sai mô tả...)"
+            style={{ flex: 1, resize: 'none', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '0.75rem', outline: 'none', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.9rem' }}
+          />
+          <button 
+            onClick={handleReportSubmit} 
+            className="btn btn-primary" 
+            style={{ padding: '0.75rem', marginTop: '1rem', borderRadius: '12px', background: '#ef4444', border: 'none', fontWeight: 600, width: '100%' }}
+          >
+            Gửi báo cáo
+          </button>
+        </div>
+      )}
     </div>
   );
 }

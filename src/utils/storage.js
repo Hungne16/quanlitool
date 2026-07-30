@@ -132,6 +132,69 @@ export const toggleFavorite = async (uid, toolId, isCurrentlyFavorite) => {
   }
 };
 
+// --- RATING & REPORTING ---
+
+export const rateTool = async (toolId, userId, score) => {
+  if (!userId) return;
+  try {
+    const toolRef = doc(db, "tools", toolId);
+    const toolSnap = await getDoc(toolRef);
+    if (toolSnap.exists()) {
+      const toolData = toolSnap.data();
+      const ratings = toolData.ratings || {};
+      ratings[userId] = score;
+      await updateDoc(toolRef, { ratings });
+    }
+  } catch (error) {
+    console.error("Error rating tool:", error);
+    throw error;
+  }
+};
+
+export const reportTool = async (toolId, userId, reason, toolName) => {
+  try {
+    const report = {
+      toolId,
+      toolName,
+      reportedBy: userId || 'guest',
+      reason,
+      status: 'unread',
+      createdAt: new Date().toISOString()
+    };
+    await addDoc(collection(db, "reports"), report);
+  } catch (error) {
+    console.error("Error reporting tool:", error);
+    throw error;
+  }
+};
+
+export const getUnreadReports = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "reports"));
+    const reports = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.status === 'unread') {
+        reports.push({ id: doc.id, ...data });
+      }
+    });
+    // Sort by newest first
+    return reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } catch (error) {
+    console.error("Error getting reports:", error);
+    return [];
+  }
+};
+
+export const markReportAsRead = async (reportId) => {
+  try {
+    const reportRef = doc(db, "reports", reportId);
+    await updateDoc(reportRef, { status: 'read' });
+  } catch (error) {
+    console.error("Error marking report as read:", error);
+  }
+};
+
 // --- IMPORT/EXPORT (Using JSON) ---
 
 export const exportData = async () => {

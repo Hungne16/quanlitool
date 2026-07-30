@@ -1,18 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { getUnreadReports, markReportAsRead } from '../utils/storage';
 import { 
   Users, LayoutDashboard, Settings, Layers, LogOut, ArrowLeft, 
   PlusSquare, Bell, Search, BarChart2, CheckSquare, Server,
-  Cpu, HardDrive, Zap, ChevronDown, Home
+  Cpu, HardDrive, Zap, ChevronDown, Home, Check
 } from 'lucide-react';
 
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  
+  const [reports, setReports] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      const data = await getUnreadReports();
+      setReports(data);
+    };
+    fetchReports();
+    
+    // Optional: Refresh reports every minute
+    const interval = setInterval(fetchReports, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleReadReport = async (reportId) => {
+    await markReportAsRead(reportId);
+    setReports(prev => prev.filter(r => r.id !== reportId));
+  };
 
   const handleLogout = async () => {
     if (window.confirm("Đăng xuất khỏi tài khoản admin?")) {
@@ -191,12 +212,69 @@ export default function AdminLayout() {
               <Home size={16} /> Trang khách
             </button>
 
-            <div style={{ position: 'relative', cursor: 'pointer' }}>
-              <Bell size={22} color="#64748b" />
-              <div style={{ 
-                position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px',
-                background: '#ef4444', borderRadius: '50%', border: '2px solid #fff'
-              }}></div>
+            <div style={{ position: 'relative' }}>
+              <div 
+                style={{ cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', transition: 'background 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                <Bell size={22} color="#64748b" />
+                {reports.length > 0 && (
+                  <div style={{ 
+                    position: 'absolute', top: '2px', right: '4px', width: '18px', height: '18px',
+                    background: '#ef4444', borderRadius: '50%', border: '2px solid #fff',
+                    color: 'white', fontSize: '0.6rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {reports.length}
+                  </div>
+                )}
+              </div>
+              
+              {/* Reports Dropdown */}
+              {isDropdownOpen && (
+                <div style={{
+                  position: 'absolute', top: '50px', right: '-10px', width: '320px',
+                  background: 'white', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                  border: '1px solid #e2e8f0', zIndex: 100, overflow: 'hidden'
+                }}>
+                  <div style={{ padding: '1rem', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#1e293b' }}>Báo cáo chưa đọc</h4>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, background: '#e2e8f0', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>{reports.length} mới</span>
+                  </div>
+                  
+                  <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    {reports.length === 0 ? (
+                      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                        Không có báo cáo nào mới.
+                      </div>
+                    ) : (
+                      reports.map(report => (
+                        <div key={report.id} style={{ padding: '1rem', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: '0.75rem' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', marginTop: '6px', flexShrink: 0 }}></div>
+                          <div style={{ flex: 1 }}>
+                            <h5 style={{ margin: '0 0 0.25rem 0', fontSize: '0.85rem', color: '#1e293b' }}>{report.toolName}</h5>
+                            <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: '#64748b', lineHeight: 1.4 }}>{report.reason}</p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                                {new Date(report.createdAt).toLocaleDateString('vi-VN')}
+                              </span>
+                              <button 
+                                onClick={() => handleReadReport(report.id)}
+                                style={{ background: 'transparent', border: '1px solid #cbd5e1', padding: '0.2rem 0.5rem', borderRadius: '12px', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', color: '#64748b', transition: 'all 0.2s' }}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#6366f1'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#6366f1'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                              >
+                                <Check size={12} /> Đã xử lý
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}>
