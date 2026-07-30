@@ -3,8 +3,9 @@ import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { db, auth } from '../../config/firebase';
-import { Lock, Unlock, Shield, ShieldAlert, Trash2, Mail, Plus, X } from 'lucide-react';
+import { Lock, Unlock, Shield, ShieldAlert, Trash2, Mail, Plus, X, Edit3 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { getLevelInfo } from '../../utils/gamification';
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -60,6 +61,23 @@ export default function Users() {
     } catch (err) {
       console.error(err);
       alert('Lỗi khi khóa tài khoản.');
+    }
+  };
+
+  const handleUpdatePoints = async (userId, currentPoints) => {
+    const newPoints = prompt("Nhập số điểm mới:", currentPoints || 0);
+    if (newPoints === null) return;
+    const pts = parseInt(newPoints, 10);
+    if (isNaN(pts) || pts < 0) {
+      alert("Điểm không hợp lệ!");
+      return;
+    }
+    try {
+      await updateDoc(doc(db, 'users', userId), { points: pts });
+      fetchUsers();
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi khi cập nhật điểm.");
     }
   };
 
@@ -181,6 +199,7 @@ export default function Users() {
             <tr style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border-color)' }}>
               <th style={{ padding: '1rem' }}>Email</th>
               <th style={{ padding: '1rem' }}>Vai trò</th>
+              <th style={{ padding: '1rem' }}>Điểm & Huy hiệu</th>
               <th style={{ padding: '1rem' }}>Trạng thái</th>
               <th style={{ padding: '1rem' }}>Ngày tạo</th>
               <th style={{ padding: '1rem', textAlign: 'right' }}>Hành động</th>
@@ -213,6 +232,26 @@ export default function Users() {
                     <option value="admin">Admin</option>
                     {profile?.role === 'super_admin' && <option value="super_admin">Super Admin</option>}
                   </select>
+                </td>
+                <td style={{ padding: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ 
+                      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                      padding: '0.2rem 0.5rem', borderRadius: '4px',
+                      backgroundColor: 'var(--bg-sidebar)', border: '1px solid var(--border-color)',
+                      fontSize: '0.8rem', fontWeight: 600
+                    }}>
+                      {getLevelInfo(u.points).badge} {u.points || 0} pts
+                    </span>
+                    <button 
+                      onClick={() => handleUpdatePoints(u.id, u.points)}
+                      className="btn-icon"
+                      title="Sửa điểm"
+                      style={{ padding: '4px' }}
+                    >
+                      <Edit3 size={14} />
+                    </button>
+                  </div>
                 </td>
                 <td style={{ padding: '1rem' }}>
                   <span style={{ 

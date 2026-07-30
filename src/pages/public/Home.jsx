@@ -3,6 +3,7 @@ import Sidebar from '../../components/Sidebar';
 import ToolGrid from '../../components/ToolGrid';
 import AddToolModal from '../../components/AddToolModal';
 import SettingsModal from '../../components/SettingsModal';
+import ProfileModal from '../../components/ProfileModal';
 import AiAssistant from '../../components/AiAssistant';
 import ThemeToggle from '../../components/ThemeToggle';
 import { getTools, getCategories, saveTool, deleteTool, toggleFavorite, initStorage } from '../../utils/storage';
@@ -22,6 +23,7 @@ export default function Home() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   
   const { user, profile, isAdmin } = useAuth();
 
@@ -166,12 +168,18 @@ export default function Home() {
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 {profile && (
-                  <div style={{ 
-                    display: 'flex', alignItems: 'center', gap: '0.4rem', 
-                    background: 'var(--bg-secondary)', padding: '0.2rem 0.6rem', 
-                    borderRadius: '999px', border: '1px solid var(--border-color)',
-                    fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)'
-                  }} title={`${profile.points || 0} điểm`}>
+                  <div 
+                    onClick={() => setIsProfileModalOpen(true)}
+                    style={{ 
+                      display: 'flex', alignItems: 'center', gap: '0.4rem', 
+                      background: 'var(--bg-secondary)', padding: '0.2rem 0.6rem', 
+                      borderRadius: '999px', border: '1px solid var(--border-color)',
+                      fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)',
+                      cursor: 'pointer', transition: 'all 0.2s',
+                    }} 
+                    className="hover:scale-105"
+                    title={`${profile.points || 0} điểm - Nhấn để xem hồ sơ`}
+                  >
                     {getLevelInfo(profile.points).badge} {getLevelInfo(profile.points).name}
                   </div>
                 )}
@@ -313,6 +321,14 @@ export default function Home() {
       />
 
       <AiAssistant />
+
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={user}
+        profile={profile}
+        tools={tools}
+      />
     </div>
   );
 }
