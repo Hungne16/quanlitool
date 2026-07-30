@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion } from "firebase/firestore";
+import { collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../config/firebase";
 
 export const DEFAULT_CATEGORIES = [
@@ -177,6 +177,16 @@ export const rateTool = async (toolId, userId, score) => {
   }
 };
 
+export const updateUserProfile = async (userId, data) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, data);
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    throw error;
+  }
+};
+
 export const addComment = async (toolId, commentData) => {
   try {
     const toolRef = doc(db, "tools", toolId);
@@ -188,6 +198,19 @@ export const addComment = async (toolId, commentData) => {
     });
   } catch (error) {
     console.error("Error adding comment:", error);
+    throw error;
+  }
+};
+
+export const deleteComment = async (toolId, commentData) => {
+  try {
+    const toolRef = doc(db, "tools", toolId);
+    // Use arrayRemove to remove the exact comment object
+    await updateDoc(toolRef, {
+      comments: arrayRemove(commentData)
+    });
+  } catch (error) {
+    console.error("Error deleting comment:", error);
     throw error;
   }
 };

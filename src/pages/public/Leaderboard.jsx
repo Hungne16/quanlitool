@@ -93,7 +93,7 @@ export default function Leaderboard() {
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                         <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
-                          {leader.email ? leader.email.split('@')[0] : 'Người dùng ẩn danh'}
+                          {leader.nickname || (leader.email ? leader.email.split('@')[0] : 'Người dùng ẩn danh')}
                         </span>
                         {isCurrentUser && (
                           <span style={{ fontSize: '0.7rem', background: 'var(--accent-color)', color: 'white', padding: '0.1rem 0.5rem', borderRadius: '999px', fontWeight: 600 }}>Bạn</span>

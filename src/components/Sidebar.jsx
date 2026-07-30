@@ -1,7 +1,7 @@
 import React from 'react';
 import { LayoutGrid, PlusCircle, Settings, Bot, Code, PenTool, Zap, BookOpen, Folder, Compass, Heart, Info, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export default function Sidebar({ 
   categories = [],
@@ -9,10 +9,12 @@ export default function Sidebar({
   setCurrentCategory, 
   onAddClick,
   onSettingsClick,
+  onProfileClick,
   isAdmin,
   isLoggedIn
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
   
   const getCategoryIcon = (category) => {
@@ -42,7 +44,12 @@ export default function Sidebar({
     return (
       <li>
         <button 
-          onClick={() => setCurrentCategory(category)}
+          onClick={() => {
+            setCurrentCategory(category);
+            if (currentPath !== '/') {
+              navigate('/');
+            }
+          }}
           className={`category-btn ${isActive ? 'active' : ''}`}
           style={{ position: 'relative' }}
         >
@@ -106,22 +113,41 @@ export default function Sidebar({
 
         <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '1rem', paddingLeft: '0.75rem' }}>Thông tin</h4>
         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <Link to="/leaderboard" style={{ textDecoration: 'none' }}>
-            <li className={`sidebar-item ${currentPath === '/leaderboard' ? 'active' : ''}`}>
-              <Trophy size={18} style={{ color: currentPath === '/leaderboard' ? 'var(--accent-color)' : 'var(--text-secondary)' }} />
-              Bảng Xếp Hạng
-            </li>
-          </Link>
-          <Link to="/about" style={{ textDecoration: 'none' }}>
-            <li className={`sidebar-item ${currentPath === '/about' ? 'active' : ''}`}>
-              <Info size={18} style={{ color: currentPath === '/about' ? 'var(--accent-color)' : 'var(--text-secondary)' }} />
-              Giới thiệu
-            </li>
-          </Link>
+          <li>
+            <Link to="/leaderboard" style={{ textDecoration: 'none', display: 'block' }}>
+              <button className={`category-btn ${currentPath === '/leaderboard' ? 'active' : ''}`} style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem' }}>
+                <span className="icon-wrapper" style={{ color: currentPath === '/leaderboard' ? 'var(--accent-color)' : 'var(--text-secondary)', position: 'relative', zIndex: 1, display: 'flex' }}>
+                  <Trophy size={18} />
+                </span>
+                <span style={{ position: 'relative', zIndex: 1 }}>Bảng Xếp Hạng</span>
+                {currentPath === '/leaderboard' && (
+                  <motion.div layoutId="activeCategoryIndicator" transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--surface-active)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-highlight)', boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)', zIndex: 0 }} />
+                )}
+              </button>
+            </Link>
+          </li>
+          <li>
+            <Link to="/about" style={{ textDecoration: 'none', display: 'block' }}>
+              <button className={`category-btn ${currentPath === '/about' ? 'active' : ''}`} style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem' }}>
+                <span className="icon-wrapper" style={{ color: currentPath === '/about' ? 'var(--accent-color)' : 'var(--text-secondary)', position: 'relative', zIndex: 1, display: 'flex' }}>
+                  <Info size={18} />
+                </span>
+                <span style={{ position: 'relative', zIndex: 1 }}>Giới thiệu</span>
+                {currentPath === '/about' && (
+                  <motion.div layoutId="activeCategoryIndicator" transition={{ type: 'spring', stiffness: 500, damping: 30, mass: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--surface-active)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-highlight)', boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)', zIndex: 0 }} />
+                )}
+              </button>
+            </Link>
+          </li>
         </ul>
       </div>
 
       <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {isLoggedIn && (
+          <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start', padding: '0.75rem 1rem' }} onClick={onProfileClick}>
+            <Bot size={18} /> Hồ sơ của tôi
+          </button>
+        )}
         {isAdmin && (
           <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start', padding: '0.75rem 1rem' }} onClick={onSettingsClick}>
             <Settings size={18} /> Cài đặt hệ thống

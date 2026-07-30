@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { X, Send, UserCircle2 } from 'lucide-react';
+import { X, Send, UserCircle2, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { addComment } from '../utils/storage';
+import { addComment, deleteComment } from '../utils/storage';
 
-export default function CommentsModal({ isOpen, onClose, tool, onCommentAdded }) {
+export default function CommentsModal({ isOpen, onClose, tool, onCommentAdded, onCommentDeleted }) {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { user } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
 
   if (!isOpen || !tool) return null;
 
@@ -21,6 +21,7 @@ export default function CommentsModal({ isOpen, onClose, tool, onCommentAdded })
       const commentData = {
         userId: user.uid,
         userEmail: user.email,
+        nickname: profile?.nickname || null,
         text: comment.trim()
       };
       await addComment(tool.id, commentData);
@@ -33,6 +34,19 @@ export default function CommentsModal({ isOpen, onClose, tool, onCommentAdded })
       alert('Lỗi khi gửi bình luận');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (commentToDelete) => {
+    if (!window.confirm("Xóa bình luận này?")) return;
+    try {
+      await deleteComment(tool.id, commentToDelete);
+      if (onCommentDeleted) {
+        onCommentDeleted(commentToDelete);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi khi xóa bình luận');
     }
   };
 
@@ -74,11 +88,18 @@ export default function CommentsModal({ isOpen, onClose, tool, onCommentAdded })
                   <div style={{ background: 'var(--bg-secondary)', padding: '0.75rem 1rem', borderRadius: '12px', flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                       <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                        {c.userEmail.split('@')[0]}
+                        {c.nickname || c.userEmail.split('@')[0]}
                       </span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        {new Date(c.createdAt).toLocaleDateString('vi-VN')}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          {new Date(c.createdAt).toLocaleDateString('vi-VN')}
+                        </span>
+                        {isAdmin && (
+                          <button onClick={() => handleDelete(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0', display: 'flex' }}>
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                       {c.text}

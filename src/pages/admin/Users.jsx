@@ -238,8 +238,8 @@ export default function Users() {
                     <span style={{ 
                       display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
                       padding: '0.2rem 0.5rem', borderRadius: '4px',
-                      backgroundColor: 'var(--bg-sidebar)', border: '1px solid var(--border-color)',
-                      fontSize: '0.8rem', fontWeight: 600
+                      backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                      fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)'
                     }}>
                       {getLevelInfo(u.points).badge} {u.points || 0} pts
                     </span>

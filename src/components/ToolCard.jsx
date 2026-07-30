@@ -480,6 +480,12 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
             comments: [...(prev.comments || []), newComment]
           }));
         }}
+        onCommentDeleted={(deletedComment) => {
+          setLocalTool(prev => ({
+            ...prev,
+            comments: (prev.comments || []).filter(c => c.createdAt !== deletedComment.createdAt || c.userId !== deletedComment.userId)
+          }));
+        }}
       />
     </div>
   );

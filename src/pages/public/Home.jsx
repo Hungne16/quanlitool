@@ -136,13 +136,11 @@ export default function Home() {
         currentCategory={currentCategory} 
         setCurrentCategory={setCurrentCategory}
         onAddClick={() => {
-          if (!user) {
-            setIsAuthModalOpen(true);
-          } else {
-            setIsAddModalOpen(true);
-          }
+          if (user) setIsAddModalOpen(true);
+          else setIsAuthModalOpen(true);
         }}
         onSettingsClick={() => setIsSettingsModalOpen(true)}
+        onProfileClick={() => setIsProfileModalOpen(true)}
         isAdmin={isAdmin}
         isLoggedIn={!!user}
       />
@@ -184,8 +182,13 @@ export default function Home() {
                     {getLevelInfo(profile.points).badge} {getLevelInfo(profile.points).name}
                   </div>
                 )}
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  {user.email}
+                <span 
+                  onClick={() => setIsProfileModalOpen(true)}
+                  style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  className="hover:text-[var(--accent-color)] transition-colors"
+                  title="Nhấn để xem hồ sơ"
+                >
+                  <UserIcon size={14} /> {user.email}
                 </span>
                 {isAdmin && (
                   <Link to="/admin" className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', textDecoration: 'none' }}>

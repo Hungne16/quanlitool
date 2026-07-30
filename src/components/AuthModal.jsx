@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Mail, Lock, Loader2 } from 'lucide-react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { X, Mail, Lock, Loader2, User } from 'lucide-react';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,6 +8,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -18,6 +19,7 @@ export default function AuthModal({ isOpen, onClose }) {
       setError('');
       setEmail('');
       setPassword('');
+      setNickname('');
     }
   }, [isOpen]);
 
@@ -32,7 +34,10 @@ export default function AuthModal({ isOpen, onClose }) {
       if (mode === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        if (nickname.trim()) {
+          await updateProfile(userCred.user, { displayName: nickname.trim() });
+        }
       }
       onClose();
     } catch (err) {
@@ -153,6 +158,24 @@ export default function AuthModal({ isOpen, onClose }) {
           )}
 
           <form onSubmit={(e) => handleSubmit(e, 'register')} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="input-group">
+              <label>Biệt danh (Tùy chọn)</label>
+              <div style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                  <User size={18} />
+                </div>
+                <input 
+                  type="text" 
+                  className="input-control w-full" 
+                  style={{ paddingLeft: '35px', background: 'rgba(0,0,0,0.03)' }}
+                  value={nickname}
+                  onChange={e => setNickname(e.target.value)}
+                  placeholder="Tên hiển thị của bạn"
+                  tabIndex={!isLogin ? 0 : -1}
+                />
+              </div>
+            </div>
+
             <div className="input-group">
               <label>Email</label>
               <div style={{ position: 'relative' }}>

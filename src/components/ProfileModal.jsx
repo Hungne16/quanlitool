@@ -1,6 +1,7 @@
-import React from 'react';
-import { X, Award, Target, Star, ExternalLink } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Award, Target, Star, ExternalLink, Edit3, Check } from 'lucide-react';
 import { getLevelInfo } from '../utils/gamification';
+import { updateUserProfile } from '../utils/storage';
 
 export default function ProfileModal({ isOpen, onClose, user, profile, tools = [] }) {
   if (!isOpen || !user || !profile) return null;
@@ -20,6 +21,21 @@ export default function ProfileModal({ isOpen, onClose, user, profile, tools = [
     progressPercentage = Math.min(100, Math.round((currentPoints / levelInfo.next) * 100));
     pointsNeeded = levelInfo.next - currentPoints;
   }
+
+  const [isEditingNick, setIsEditingNick] = useState(false);
+  const [nickname, setNickname] = useState(profile.nickname || '');
+
+  const handleSaveNickname = async () => {
+    try {
+      await updateUserProfile(user.uid, { nickname: nickname.trim() });
+      setIsEditingNick(false);
+      // Giả lập UI cập nhật luôn
+      profile.nickname = nickname.trim();
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi lưu biệt danh');
+    }
+  };
 
   return (
     <div 
@@ -68,12 +84,41 @@ export default function ProfileModal({ isOpen, onClose, user, profile, tools = [
               {levelInfo.badge}
             </div>
             <div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                {user.email}
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {isEditingNick ? (
+                  <div style={{ display: 'flex', gap: '0.25rem' }}>
+                    <input 
+                      type="text" 
+                      value={nickname} 
+                      onChange={e => setNickname(e.target.value)}
+                      placeholder="Biệt danh..."
+                      style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', outline: 'none', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                      autoFocus
+                    />
+                    <button onClick={handleSaveNickname} style={{ background: 'var(--accent-color)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.25rem 0.5rem', cursor: 'pointer' }}>
+                      <Check size={14} />
+                    </button>
+                    <button onClick={() => { setIsEditingNick(false); setNickname(profile.nickname || ''); }} style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.25rem 0.5rem', cursor: 'pointer' }}>
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                      {profile.nickname || user.email.split('@')[0]}
+                    </h3>
+                    <button onClick={() => setIsEditingNick(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '0' }}>
+                      <Edit3 size={14} />
+                    </button>
+                  </>
+                )}
+              </div>
               <p style={{ color: 'var(--text-secondary)', margin: '0.25rem 0 0 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Award size={16} /> Cấp độ {levelInfo.level} - {levelInfo.name}
               </p>
+              {!isEditingNick && profile.nickname && (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: '0.25rem 0 0 0' }}>{user.email}</p>
+              )}
             </div>
           </div>
 
