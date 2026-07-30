@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Firebase Admin SDK key - DO NOT COMMIT
+scripts/serviceAccountKey.json
+serviceAccountKey.json
