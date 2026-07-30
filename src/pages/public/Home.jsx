@@ -193,6 +193,59 @@ export default function Home() {
         </div>
 
         <div className="content-wrapper">
+          
+          {currentCategory === 'Tất cả' && (
+            <div style={{
+              padding: '2.5rem',
+              borderRadius: '24px',
+              background: 'linear-gradient(135deg, rgba(100, 84, 168, 0.1) 0%, rgba(255, 126, 179, 0.05) 100%)',
+              border: '1px solid var(--border-color)',
+              marginBottom: '2rem',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{ position: 'relative', zIndex: 1, maxWidth: '650px' }}>
+                <h1 style={{ 
+                  fontSize: '2.5rem', 
+                  fontWeight: 800, 
+                  marginBottom: '1rem',
+                  background: 'linear-gradient(135deg, #6454a8 0%, #ff7eb3 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  lineHeight: 1.2
+                }}>
+                  Khám phá kho công cụ AI & Tiện ích đỉnh cao
+                </h1>
+                <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+                  Chào mừng bạn đến với thư viện công cụ trực tuyến. Tại đây, chúng tôi tổng hợp và phân loại hàng trăm tiện ích thiết thực giúp nâng cao hiệu suất làm việc của bạn. Hãy đăng nhập để lưu trữ bộ công cụ yêu thích của riêng mình nhé!
+                </p>
+                {!user && (
+                  <button 
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="btn btn-primary"
+                    style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', fontSize: '1rem', fontWeight: 600, background: 'linear-gradient(135deg, #7463c6, #ff7eb3)', border: 'none', boxShadow: '0 10px 20px rgba(116, 99, 198, 0.2)' }}
+                  >
+                    Bắt đầu sử dụng ngay
+                  </button>
+                )}
+              </div>
+              
+              {/* Decorative elements */}
+              <div style={{
+                position: 'absolute',
+                top: '-50px',
+                right: '-50px',
+                width: '300px',
+                height: '300px',
+                background: 'linear-gradient(135deg, #7463c6, #ff7eb3)',
+                borderRadius: '50%',
+                filter: 'blur(80px)',
+                opacity: 0.15,
+                zIndex: 0
+              }}></div>
+            </div>
+          )}
+
           <header className="page-header">
             <div>
               <h1 className="page-title">{currentCategory}</h1>
