@@ -154,6 +154,25 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
               </span>
             </div>
 
+            {/* Tags */}
+            {tool.tags && tool.tags.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginBottom: '0.75rem' }}>
+                {tool.tags.map(tag => (
+                  <span key={tag} style={{
+                    fontSize: '0.65rem',
+                    fontWeight: 500,
+                    padding: '0.15rem 0.4rem',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-secondary)',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border-color)'
+                  }}>
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
             {/* Description */}
             <div style={{ flex: 1, marginBottom: '1.5rem' }}>
               <p style={{

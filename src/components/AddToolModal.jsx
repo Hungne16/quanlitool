@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Link as LinkIcon, Type, Image as ImageIcon, FileText, LayoutList } from 'lucide-react';
+import { X, Link as LinkIcon, Type, Image as ImageIcon, FileText, LayoutList, Tag } from 'lucide-react';
 import ToolCard from './ToolCard';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -9,12 +9,15 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     url: '',
     description: '',
     category: '',
-    imageUrl: ''
+    imageUrl: '',
+    tags: []
   });
+  
+  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({ ...initialData, tags: initialData.tags || [] });
     } else if (categories && categories.length > 0) {
       setFormData(prev => ({ ...prev, category: categories[0] }));
     }
@@ -25,6 +28,25 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleTagKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag();
+    }
+  };
+
+  const addTag = () => {
+    const trimmed = tagInput.trim().toLowerCase();
+    if (trimmed && !formData.tags.includes(trimmed)) {
+      setFormData(prev => ({ ...prev, tags: [...prev.tags, trimmed] }));
+    }
+    setTagInput('');
+  };
+
+  const removeTag = (tagToRemove) => {
+    setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tagToRemove) }));
   };
 
   const handleSubmit = async (e) => {
@@ -38,7 +60,8 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     }
 
     await onSave({ ...formData, url: finalUrl });
-    setFormData({ title: '', url: '', description: '', category: categories[0] || '', imageUrl: '' });
+    setFormData({ title: '', url: '', description: '', category: categories[0] || '', imageUrl: '', tags: [] });
+    setTagInput('');
     onClose();
   };
 
@@ -49,7 +72,8 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     url: formData.url || 'https://example.com',
     description: formData.description || 'Mô tả ngắn gọn về công cụ của bạn sẽ hiển thị ở đây...',
     category: formData.category || 'Category',
-    imageUrl: formData.imageUrl
+    imageUrl: formData.imageUrl,
+    tags: formData.tags
   };
 
   return (
@@ -148,6 +172,36 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
                     <ImageIcon size={16} color="var(--accent-color)" /> Logo URL
                   </label>
                   <input type="text" name="imageUrl" className="input-control" value={formData.imageUrl} onChange={handleChange} placeholder="Tuỳ chọn..." style={{ padding: '0.75rem 1rem', borderRadius: '12px' }} />
+                </div>
+              </div>
+
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+                  <Tag size={16} color="var(--accent-color)" /> Tags (Thẻ phân loại)
+                </label>
+                <div style={{ 
+                  display: 'flex', flexWrap: 'wrap', gap: '0.5rem', padding: '0.5rem', 
+                  border: '1px solid var(--border-color)', borderRadius: '12px', background: 'var(--bg-primary)' 
+                }}>
+                  {formData.tags.map(tag => (
+                    <span key={tag} style={{ 
+                      display: 'flex', alignItems: 'center', gap: '0.25rem',
+                      background: 'var(--accent-color)', color: 'white', 
+                      padding: '0.25rem 0.5rem', borderRadius: '16px', fontSize: '0.8rem' 
+                    }}>
+                      {tag}
+                      <X size={14} style={{ cursor: 'pointer' }} onClick={() => removeTag(tag)} />
+                    </span>
+                  ))}
+                  <input 
+                    type="text" 
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    onBlur={() => tagInput.trim() && addTag()}
+                    placeholder={formData.tags.length === 0 ? "Nhập tag và nhấn Enter..." : ""}
+                    style={{ border: 'none', background: 'transparent', outline: 'none', flex: 1, minWidth: '120px', fontSize: '0.9rem' }}
+                  />
                 </div>
               </div>
 

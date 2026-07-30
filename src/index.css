@@ -560,6 +560,7 @@ select.input-control {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  pointer-events: none; /* Let clicks pass through empty space */
 }
 .chat-toggle-btn {
   width: 56px;
@@ -574,6 +575,7 @@ select.input-control {
   justify-content: center;
   box-shadow: 0 4px 20px var(--accent-glow);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  pointer-events: auto; /* Re-enable clicks */
 }
 .chat-toggle-btn:hover {
   transform: scale(1.05);
@@ -593,6 +595,7 @@ select.input-control {
   overflow: hidden;
   transform-origin: bottom right;
   transition: all var(--transition-normal);
+  pointer-events: auto; /* Re-enable clicks when open */
 }
 .chat-panel.hidden {
   opacity: 0;

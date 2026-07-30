@@ -43,8 +43,32 @@ export const getTools = async () => {
   try {
     const querySnapshot = await getDocs(collection(db, "tools"));
     const tools = [];
+    
+    // Migration: Default tags mapping for old data without tags
+    const DEFAULT_TAGS = {
+      'AI & Machine Learning': ['ai', 'bot', 'llm', 'chat', 'machine-learning'],
+      'Lập trình': ['code', 'developer', 'ide', 'framework', 'programming'],
+      'Thiết kế': ['design', 'ui', 'ux', 'graphics', 'assets'],
+      'Năng suất': ['productivity', 'work', 'office', 'tools', 'management'],
+      'Đọc sách & Tin tức': ['reading', 'news', 'books', 'articles'],
+      'Khác': ['misc', 'other']
+    };
+
     querySnapshot.forEach((doc) => {
-      tools.push({ id: doc.id, ...doc.data() });
+      const data = doc.data();
+      let tags = data.tags;
+      
+      // Auto-assign tags if none exist
+      if (!tags || tags.length === 0) {
+        if (data.category && DEFAULT_TAGS[data.category]) {
+          // Take first 3 tags randomly or deterministically
+          tags = DEFAULT_TAGS[data.category].slice(0, 3);
+        } else {
+          tags = ['tool'];
+        }
+      }
+
+      tools.push({ id: doc.id, ...data, tags });
     });
     return tools;
   } catch (error) {

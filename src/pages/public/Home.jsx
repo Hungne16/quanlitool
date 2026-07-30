@@ -79,32 +79,51 @@ export default function Home() {
     // No need to refreshData for tools, the user profile snapshot will trigger a re-render!
   };
 
-  const filteredTools = useMemo(() => {
+  const [selectedTags, setSelectedTags] = useState([]);
+
+  useEffect(() => {
+    setSelectedTags([]);
+  }, [currentCategory]);
+
+  const categoryTools = useMemo(() => {
     return tools.filter(tool => {
-      // Filter by status if not admin (legacy tools without status are assumed approved)
       const isPending = tool.status === 'pending';
       if (!isAdmin && isPending) return false;
-
-      let matchesCategory = false;
       
       const isFavorite = profile?.favorites?.includes(tool.id);
-      
-      if (currentCategory === 'Tất cả') {
-        matchesCategory = true;
-      } else if (currentCategory === 'Yêu thích') {
-        matchesCategory = isFavorite;
-      } else {
-        matchesCategory = tool.category === currentCategory;
-      }
+      if (currentCategory === 'Tất cả') return true;
+      if (currentCategory === 'Yêu thích') return isFavorite;
+      return tool.category === currentCategory;
+    });
+  }, [tools, currentCategory, isAdmin, profile]);
 
+  const availableTags = useMemo(() => {
+    const tags = new Set();
+    categoryTools.forEach(tool => {
+      if (tool.tags && Array.isArray(tool.tags)) {
+        tool.tags.forEach(tag => tags.add(tag));
+      }
+    });
+    return Array.from(tags).sort();
+  }, [categoryTools]);
+
+  const filteredTools = useMemo(() => {
+    return categoryTools.filter(tool => {
       const matchesSearch = tool.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             tool.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
+      
+      let matchesTags = true;
+      if (selectedTags.length > 0) {
+        // Lọc theo kiểu OR: Công cụ có chứa ít nhất 1 tag đang chọn
+        matchesTags = tool.tags && tool.tags.some(tag => selectedTags.includes(tag));
+      }
+      
+      return matchesSearch && matchesTags;
     }).map(tool => ({
       ...tool,
       isFavorite: profile?.favorites?.includes(tool.id) || false
     }));
-  }, [tools, currentCategory, searchQuery, isAdmin, profile]);
+  }, [categoryTools, searchQuery, selectedTags, profile]);
 
   return (
     <div className="app-container">
@@ -178,6 +197,34 @@ export default function Home() {
             <div>
               <h1 className="page-title">{currentCategory}</h1>
               <p className="page-subtitle">Quản lý và truy cập nhanh {filteredTools.length} công cụ.</p>
+              
+              {availableTags.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
+                  {availableTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        setSelectedTags(prev => 
+                          prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                        );
+                      }}
+                      style={{
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '20px',
+                        fontSize: '0.8rem',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        border: selectedTags.includes(tag) ? '1px solid var(--accent-color)' : '1px solid var(--border-color)',
+                        background: selectedTags.includes(tag) ? 'var(--accent-color)' : 'var(--bg-secondary)',
+                        color: selectedTags.includes(tag) ? '#fff' : 'var(--text-secondary)',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </header>
 
