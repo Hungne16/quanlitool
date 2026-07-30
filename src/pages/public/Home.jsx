@@ -113,8 +113,8 @@ export default function Home() {
 
   const filteredTools = useMemo(() => {
     return categoryTools.filter(tool => {
-      const matchesSearch = (tool.title || tool.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            (tool.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = (tool.title || tool.name || '').toLowerCase().includes((searchQuery || '').toLowerCase()) || 
+                            (tool.description || '').toLowerCase().includes((searchQuery || '').toLowerCase());
       
       let matchesTags = true;
       if (selectedTags.length > 0) {
