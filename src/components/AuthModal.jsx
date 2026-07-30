@@ -144,84 +144,78 @@ export default function AuthModal({ isOpen, onClose }) {
             SIGN UP FORM (RIGHT)
         ======================= */}
         <div className={`auth-form-container auth-form-right ${!isLogin ? 'active' : ''}`} style={{ opacity: !isLogin ? 1 : 0, transition: 'opacity 0.3s ease', zIndex: !isLogin ? 20 : 1 }}>
-          <h2 style={{ marginBottom: '0.5rem', textAlign: 'center', fontSize: '2rem', fontWeight: 800 }}>
-            Sign up
+          <h2 style={{ marginBottom: '0.25rem', textAlign: 'center', fontSize: '1.6rem', fontWeight: 800 }}>
+            Tạo tài khoản
           </h2>
-          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-            Tạo tài khoản để bắt đầu trải nghiệm
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+            Điền thông tin bên dưới để bắt đầu
           </p>
 
           {error && !isLogin && (
-            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '0.75rem', borderRadius: 'var(--radius-md)', marginBottom: '1rem', fontSize: '0.9rem', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)', marginBottom: '0.75rem', fontSize: '0.85rem', border: '1px solid rgba(239,68,68,0.2)' }}>
               {error}
             </div>
           )}
 
-          <form onSubmit={(e) => handleSubmit(e, 'register')} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div className="input-group">
-              <label>Biệt danh (Tùy chọn)</label>
-              <div style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
-                  <User size={18} />
-                </div>
-                <input 
-                  type="text" 
-                  className="input-control w-full" 
-                  style={{ paddingLeft: '35px', background: 'rgba(0,0,0,0.03)' }}
-                  value={nickname}
-                  onChange={e => setNickname(e.target.value)}
-                  placeholder="Tên hiển thị của bạn"
-                  tabIndex={!isLogin ? 0 : -1}
-                />
+          <form onSubmit={(e) => handleSubmit(e, 'register')} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            {/* Nickname */}
+            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', color: 'var(--text-muted)', zIndex: 1 }}>
+                <User size={15} />
               </div>
+              <input 
+                type="text"
+                className="input-control w-full"
+                style={{ paddingLeft: '32px', paddingTop: '0.55rem', paddingBottom: '0.55rem', fontSize: '0.875rem', background: 'rgba(0,0,0,0.03)' }}
+                value={nickname}
+                onChange={e => setNickname(e.target.value)}
+                placeholder="Biệt danh (tùy chọn)"
+                tabIndex={!isLogin ? 0 : -1}
+              />
             </div>
 
-            <div className="input-group">
-              <label>Email</label>
-              <div style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
-                  <Mail size={18} />
-                </div>
-                <input 
-                  type="email" 
-                  required 
-                  className="input-control w-full" 
-                  style={{ paddingLeft: '35px', background: 'rgba(0,0,0,0.03)' }}
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                  tabIndex={!isLogin ? 0 : -1}
-                />
+            {/* Email */}
+            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', color: 'var(--text-muted)', zIndex: 1 }}>
+                <Mail size={15} />
               </div>
+              <input 
+                type="email"
+                required
+                className="input-control w-full"
+                style={{ paddingLeft: '32px', paddingTop: '0.55rem', paddingBottom: '0.55rem', fontSize: '0.875rem', background: 'rgba(0,0,0,0.03)' }}
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="Email"
+                tabIndex={!isLogin ? 0 : -1}
+              />
             </div>
 
-            <div className="input-group">
-              <label>Mật khẩu</label>
-              <div style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
-                  <Lock size={18} />
-                </div>
-                <input 
-                  type="password" 
-                  required 
-                  minLength={6}
-                  className="input-control w-full" 
-                  style={{ paddingLeft: '35px', background: 'rgba(0,0,0,0.03)' }}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Tối thiểu 6 ký tự"
-                  tabIndex={!isLogin ? 0 : -1}
-                />
+            {/* Password */}
+            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', color: 'var(--text-muted)', zIndex: 1 }}>
+                <Lock size={15} />
               </div>
+              <input 
+                type="password"
+                required
+                minLength={6}
+                className="input-control w-full"
+                style={{ paddingLeft: '32px', paddingTop: '0.55rem', paddingBottom: '0.55rem', fontSize: '0.875rem', background: 'rgba(0,0,0,0.03)' }}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Mật khẩu (tối thiểu 6 ký tự)"
+                tabIndex={!isLogin ? 0 : -1}
+              />
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '0.8rem', fontSize: '1rem', display: 'flex', justifyContent: 'center' }} disabled={loading} tabIndex={!isLogin ? 0 : -1}>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem', padding: '0.7rem', fontSize: '0.95rem', display: 'flex', justifyContent: 'center' }} disabled={loading} tabIndex={!isLogin ? 0 : -1}>
               {loading ? <Loader2 size={18} className="lucide-spin" style={{ animation: 'spin 1s linear infinite' }} /> : 'Tạo tài khoản'}
             </button>
           </form>
 
           {/* Mobile toggle link */}
-          <div className="md:hidden mt-6 text-center text-sm text-[var(--text-secondary)] block">
+          <div className="md:hidden mt-4 text-center text-sm text-[var(--text-secondary)] block">
             Đã có tài khoản? <span onClick={() => { setIsLogin(true); setError(''); }} className="text-[var(--accent-color)] cursor-pointer font-medium">Đăng nhập</span>
           </div>
         </div>
