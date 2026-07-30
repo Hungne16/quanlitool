@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../config/firebase";
 
 export const DEFAULT_CATEGORIES = [
@@ -173,6 +173,21 @@ export const rateTool = async (toolId, userId, score) => {
     }
   } catch (error) {
     console.error("Error rating tool:", error);
+    throw error;
+  }
+};
+
+export const addComment = async (toolId, commentData) => {
+  try {
+    const toolRef = doc(db, "tools", toolId);
+    await updateDoc(toolRef, {
+      comments: arrayUnion({
+        ...commentData,
+        createdAt: new Date().toISOString()
+      })
+    });
+  } catch (error) {
+    console.error("Error adding comment:", error);
     throw error;
   }
 };

@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Home from './pages/public/Home';
+import About from './pages/public/About';
+import Leaderboard from './pages/public/Leaderboard';
 import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import Users from './pages/admin/Users';
@@ -19,6 +21,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
       <Route 
         path="/admin/*" 
         element={

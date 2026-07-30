@@ -1,6 +1,7 @@
 import React from 'react';
-import { LayoutGrid, PlusCircle, Settings, Bot, Code, PenTool, Zap, BookOpen, Folder, Compass, Heart } from 'lucide-react';
+import { LayoutGrid, PlusCircle, Settings, Bot, Code, PenTool, Zap, BookOpen, Folder, Compass, Heart, Info, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link, useLocation } from 'react-router-dom';
 
 export default function Sidebar({ 
   categories = [],
@@ -11,6 +12,8 @@ export default function Sidebar({
   isAdmin,
   isLoggedIn
 }) {
+  const location = useLocation();
+  const currentPath = location.pathname;
   
   const getCategoryIcon = (category) => {
     switch(category) {
@@ -95,10 +98,26 @@ export default function Sidebar({
         </ul>
 
         <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '1rem', paddingLeft: '0.75rem' }}>Danh mục</h4>
-        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '2rem' }}>
           {categories.map(cat => (
             <CategoryButton key={cat} category={cat} />
           ))}
+        </ul>
+
+        <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--text-secondary)', marginBottom: '1rem', paddingLeft: '0.75rem' }}>Thông tin</h4>
+        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <Link to="/leaderboard" style={{ textDecoration: 'none' }}>
+            <li className={`sidebar-item ${currentPath === '/leaderboard' ? 'active' : ''}`}>
+              <Trophy size={18} style={{ color: currentPath === '/leaderboard' ? 'var(--accent-color)' : 'var(--text-secondary)' }} />
+              Bảng Xếp Hạng
+            </li>
+          </Link>
+          <Link to="/about" style={{ textDecoration: 'none' }}>
+            <li className={`sidebar-item ${currentPath === '/about' ? 'active' : ''}`}>
+              <Info size={18} style={{ color: currentPath === '/about' ? 'var(--accent-color)' : 'var(--text-secondary)' }} />
+              Giới thiệu
+            </li>
+          </Link>
         </ul>
       </div>
 

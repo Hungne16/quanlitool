@@ -6,6 +6,7 @@ import SettingsModal from '../../components/SettingsModal';
 import ProfileModal from '../../components/ProfileModal';
 import AiAssistant from '../../components/AiAssistant';
 import ThemeToggle from '../../components/ThemeToggle';
+import TrendingCarousel from '../../components/TrendingCarousel';
 import { getTools, getCategories, saveTool, deleteTool, toggleFavorite, initStorage } from '../../utils/storage';
 import { Search, Bell, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -263,6 +264,10 @@ export default function Home() {
                 zIndex: 0
               }}></div>
             </div>
+          )}
+
+          {currentCategory === 'Tất cả' && !searchQuery && selectedTags.length === 0 && (
+            <TrendingCarousel tools={tools.filter(t => t.status !== 'pending' && t.status !== 'rejected')} />
           )}
 
           <header className="page-header">
