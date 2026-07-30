@@ -76,12 +76,12 @@ export default function TrendingCarousel({ tools }) {
                   {tool.imageUrl ? (
                     <img src={tool.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--accent-color)' }}>{tool.title.charAt(0)}</span>
+                    <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--accent-color)' }}>{(tool.title || tool.name || '?').charAt(0)}</span>
                   )}
                 </div>
                 <div style={{ flex: 1, overflow: 'hidden' }}>
                   <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
-                    {tool.title}
+                    {tool.title || tool.name || 'Không có tên'}
                   </h3>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'var(--bg-secondary)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
                     {tool.category}

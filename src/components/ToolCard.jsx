@@ -100,7 +100,7 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
 
   const domain = getDomain(tool.url);
   const imageUrl = tool.imageUrl || (domain ? `https://logo.clearbit.com/${domain}` : null);
-  const headerGradient = getGradient(tool.title);
+  const headerGradient = getGradient(tool.title || tool.name);
 
   return (
     <div style={{ perspective: '1000px', height: '100%' }}>
@@ -237,13 +237,13 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
               {imageUrl ? (
                 <img src={imageUrl} alt={tool.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none' }} />
               ) : (
-                <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6454a8' }}>{tool.title.charAt(0)}</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6454a8' }}>{(tool.title || tool.name || '?').charAt(0)}</span>
               )}
             </div>
 
             {/* Title and Badge */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{tool.title}</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{tool.title || tool.name || 'Không có tên'}</h3>
               <span style={{
                 fontSize: '0.7rem',
                 fontWeight: 600,

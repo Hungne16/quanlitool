@@ -143,7 +143,7 @@ export default function Tools() {
 
   const filteredTools = tools.filter(t => {
     const matchesCategory = selectedCategory ? t.category === selectedCategory : true;
-    const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = (t.title || t.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
