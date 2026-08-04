@@ -83,7 +83,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     setAnalyzeError('');
     
     try {
-      const response = await fetch('/api/tools/analyze', {
+      const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: targetUrl })
