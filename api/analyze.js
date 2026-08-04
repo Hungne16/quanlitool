@@ -21,8 +21,9 @@ export default async function handler(req, res) {
     console.log(`[analyze] Starting analysis for: ${url}`);
     
     // Initialize Crawl4AI client
-    // By default it connects to http://localhost:11235 or process.env.CRAWL4AI_API_URL
-    const crawler = new Crawl4AI(); 
+    const crawlerUrl = process.env.CRAWL4AI_API_URL || 'http://localhost:11235';
+    const crawlerToken = process.env.CRAWL4AI_API_TOKEN || '';
+    const crawler = new Crawl4AI({ baseUrl: crawlerUrl, apiToken: crawlerToken });
     
     console.log(`[analyze] Crawling main URL...`);
     const mainCrawl = await crawler.crawl({
