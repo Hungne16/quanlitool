@@ -121,12 +121,14 @@ export default async function handler(req, res) {
     console.log(`[analyze] Analyzing with Gemini...`);
     
     const aiClient = new GoogleGenAI({ apiKey: geminiApiKey });
+    const sanitizedContent = combinedContent.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '');
+
     const prompt = `Dưới đây là nội dung được trích xuất từ một website phần mềm/công cụ.
 Nhiệm vụ của bạn là phân tích và trả về thông tin dưới dạng JSON theo đúng schema yêu cầu. 
 Nếu không tìm thấy thông tin cho một trường nào đó, hãy để chuỗi rỗng "" hoặc mảng rỗng []. Không tự bịa thông tin.
 
 Nội dung website:
-${combinedContent.substring(0, 40000)}
+${sanitizedContent.substring(0, 40000)}
 
 Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, không có thẻ code block \`\`\`json:
 {
