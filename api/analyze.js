@@ -25,22 +25,37 @@ export default async function handler(req, res) {
     const crawlerToken = process.env.CRAWL4AI_API_TOKEN || '';
     const crawler = new Crawl4AI({ baseUrl: crawlerUrl, apiToken: crawlerToken });
     
-    console.log(`[analyze] Crawling main URL...`);
-    const mainCrawl = await crawler.crawl({
-      urls: [url],
-      browser_config: { headless: true },
-    });
-    
-    if (!mainCrawl || mainCrawl.length === 0 || !mainCrawl[0].success) {
-      throw new Error('Failed to crawl the main URL using Crawl4AI.');
+    let mainMarkdown = '';
+    let mainHtml = '';
+
+    try {
+      console.log(`[analyze] Crawling main URL with Crawl4AI...`);
+      const mainCrawl = await crawler.crawl({
+        urls: [url],
+        browser_config: { headless: true },
+      });
+      
+      if (!mainCrawl || mainCrawl.length === 0 || !mainCrawl[0].success) {
+        throw new Error('Crawl4AI returned unsuccessful response.');
+      }
+      
+      const mainData = mainCrawl[0];
+      mainMarkdown = mainData.markdown || '';
+      mainHtml = mainData.html || '';
+    } catch (crawlerError) {
+      console.warn(`[analyze] Crawl4AI failed (${crawlerError.message}). Falling back to native fetch...`);
+      const fallbackResponse = await fetch(url);
+      if (!fallbackResponse.ok) {
+        throw new Error(`Fallback fetch failed with status: ${fallbackResponse.status}`);
+      }
+      mainHtml = await fallbackResponse.text();
+      const $fallback = cheerio.load(mainHtml);
+      $fallback('script, style, noscript, iframe, svg, img, video').remove();
+      mainMarkdown = $fallback('body').text().replace(/\s+/g, ' ').trim();
     }
-    
-    const mainData = mainCrawl[0];
-    const mainMarkdown = mainData.markdown || '';
-    const mainHtml = mainData.html || '';
 
     // Parse HTML to find sub-pages (Pricing, Features, Docs, API, About)
-    const $ = cheerio.load(mainHtml);
+    const $ = cheerio.load(mainHtml || '<html/>');
     const subPagesToFind = ['pricing', 'features', 'docs', 'api', 'about'];
     const subUrlsToCrawl = new Set();
     
@@ -84,7 +99,22 @@ export default async function handler(req, res) {
           }
         });
       } catch (err) {
-        console.warn(`[analyze] Failed to crawl sub-pages: ${err.message}`);
+        console.warn(`[analyze] Crawl4AI failed for sub-pages. Falling back to native fetch...`);
+        // Fallback for sub-pages
+        await Promise.all(subUrlsArray.map(async (subUrl) => {
+          try {
+            const subRes = await fetch(subUrl);
+            if (subRes.ok) {
+              const subHtml = await subRes.text();
+              const $sub = cheerio.load(subHtml);
+              $sub('script, style, noscript, iframe, svg, img, video').remove();
+              const subText = $sub('body').text().replace(/\s+/g, ' ').trim();
+              combinedContent += `Trang con (${subUrl}):\n${subText.substring(0, 8000)}\n\n`;
+            }
+          } catch (fetchErr) {
+            console.warn(`Failed to fetch subpage ${subUrl}:`, fetchErr.message);
+          }
+        }));
       }
     }
 
