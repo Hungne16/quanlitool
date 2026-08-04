@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { url, apiKey: clientApiKey } = req.body;
+  const { url, apiKey: clientApiKey, categories } = req.body;
   if (!url || !url.startsWith('http')) {
     return res.status(400).json({ error: 'Invalid URL provided' });
   }
@@ -123,6 +123,10 @@ export default async function handler(req, res) {
     const aiClient = new GoogleGenAI({ apiKey: geminiApiKey });
     const sanitizedContent = combinedContent.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '');
 
+    const categoryConstraint = categories && categories.length > 0 
+      ? `CHỈ CHỌN 1 TRONG CÁC DANH MỤC SAU: ${categories.join(', ')}. Nếu không phù hợp với cái nào, hãy chọn danh mục gần nhất.`
+      : `Danh mục (ví dụ: AI, Development, Design, Productivity, v.v...)`;
+
     const prompt = `Dưới đây là nội dung được trích xuất từ một website phần mềm/công cụ.
 Nhiệm vụ của bạn là phân tích và trả về thông tin dưới dạng JSON theo đúng schema yêu cầu. 
 Nếu không tìm thấy thông tin cho một trường nào đó, hãy để chuỗi rỗng "" hoặc mảng rỗng []. Không tự bịa thông tin.
@@ -135,7 +139,7 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
   "title": "Tên công cụ/phần mềm",
   "shortDescription": "Mô tả ngắn gọn (khoảng 1-2 câu)",
   "fullDescription": "Mô tả chi tiết hơn",
-  "category": "Danh mục (ví dụ: AI, Development, Design, Productivity, v.v...)",
+  "category": "${categoryConstraint}",
   "tags": ["tag1", "tag2"],
   "pricing": "Mô hình giá (Free, Freemium, Paid, Contact Sales, ...)",
   "platforms": ["Web", "Windows", "macOS", "iOS", "Android"],

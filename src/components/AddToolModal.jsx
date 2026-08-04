@@ -84,10 +84,11 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     
     try {
       const clientApiKey = localStorage.getItem('gemini_api_key');
+      const availableCategories = categories.filter(c => c !== "Tất cả");
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: targetUrl, apiKey: clientApiKey })
+        body: JSON.stringify({ url: targetUrl, apiKey: clientApiKey, categories: availableCategories })
       });
       
       const data = await response.json();
