@@ -170,6 +170,29 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
       resultJson = JSON.parse(cleanJson);
     }
 
+    // Extract logo from HTML headers since images are stripped from the AI prompt
+    let extractedLogoUrl = '';
+    if (mainHtml) {
+      const $head = cheerio.load(mainHtml);
+      extractedLogoUrl = $head('meta[property="og:image"]').attr('content') ||
+                $head('link[rel="apple-touch-icon"]').attr('href') ||
+                $head('link[rel="icon"]').attr('href') ||
+                $head('link[rel="shortcut icon"]').attr('href') ||
+                '';
+      
+      if (extractedLogoUrl && !extractedLogoUrl.startsWith('http') && !extractedLogoUrl.startsWith('data:')) {
+        try {
+          extractedLogoUrl = new URL(extractedLogoUrl, url).href;
+        } catch (e) {
+          extractedLogoUrl = '';
+        }
+      }
+    }
+
+    if (!resultJson.logo || resultJson.logo === '') {
+      resultJson.logo = extractedLogoUrl;
+    }
+
     console.log(`[analyze] Analysis complete for ${url}`);
     return res.status(200).json(resultJson);
 
