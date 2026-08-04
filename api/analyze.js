@@ -149,10 +149,7 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
 
     const interaction = await aiClient.interactions.create({
       model: "gemini-3.6-flash",
-      input: prompt,
-      config: {
-        responseMimeType: "application/json",
-      }
+      input: prompt
     });
 
     const aiText = interaction.output_text;
