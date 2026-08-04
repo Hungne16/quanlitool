@@ -7,14 +7,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { url } = req.body;
+  const { url, apiKey: clientApiKey } = req.body;
   if (!url || !url.startsWith('http')) {
     return res.status(400).json({ error: 'Invalid URL provided' });
   }
 
-  const geminiApiKey = process.env.GEMINI_API_KEY;
+  const geminiApiKey = process.env.GEMINI_API_KEY || clientApiKey;
   if (!geminiApiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY is not configured' });
+    return res.status(500).json({ error: 'GEMINI_API_KEY is not configured on server and not provided by client' });
   }
 
   try {

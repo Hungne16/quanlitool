@@ -83,10 +83,11 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     setAnalyzeError('');
     
     try {
+      const clientApiKey = localStorage.getItem('gemini_api_key');
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: targetUrl })
+        body: JSON.stringify({ url: targetUrl, apiKey: clientApiKey })
       });
       
       const data = await response.json();
