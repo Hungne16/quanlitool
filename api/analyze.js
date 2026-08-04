@@ -28,6 +28,12 @@ export default async function handler(req, res) {
     let mainMarkdown = '';
     let mainHtml = '';
 
+    const fetchHeaders = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5'
+    };
+
     try {
       console.log(`[analyze] Crawling main URL with Crawl4AI...`);
       const mainCrawl = await crawler.crawl({
@@ -44,7 +50,7 @@ export default async function handler(req, res) {
       mainHtml = mainData.html || '';
     } catch (crawlerError) {
       console.warn(`[analyze] Crawl4AI failed (${crawlerError.message}). Falling back to native fetch...`);
-      const fallbackResponse = await fetch(url);
+      const fallbackResponse = await fetch(url, { headers: fetchHeaders });
       if (!fallbackResponse.ok) {
         throw new Error(`Fallback fetch failed with status: ${fallbackResponse.status}`);
       }
@@ -103,7 +109,7 @@ export default async function handler(req, res) {
         // Fallback for sub-pages
         await Promise.all(subUrlsArray.map(async (subUrl) => {
           try {
-            const subRes = await fetch(subUrl);
+            const subRes = await fetch(subUrl, { headers: fetchHeaders });
             if (subRes.ok) {
               const subHtml = await subRes.text();
               const $sub = cheerio.load(subHtml);
