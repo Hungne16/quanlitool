@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ExternalLink, Trash2, ArrowUpRight, Heart, Play, X, Star, Flag, Share2, MessageCircle } from 'lucide-react';
+import { ExternalLink, Trash2, ArrowUpRight, Heart, Play, X, Star, Flag, Share2, MessageCircle, Scale } from 'lucide-react';
+import { motion, useMotionValue, useMotionTemplate } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { rateTool, reportTool } from '../utils/storage';
 import CommentsModal from './CommentsModal';
@@ -24,7 +25,7 @@ const getGradient = (text) => {
   return gradients[Math.abs(hash) % gradients.length];
 };
 
-export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) {
+export default function ToolCard({ tool, onDelete, onToggleFavorite, onCompare, isAdmin }) {
   const [flipped, setFlipped] = useState(false);
   const [isDescriptionLong, setIsDescriptionLong] = useState(false);
   
@@ -34,6 +35,21 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [localTool, setLocalTool] = useState(tool);
+
+  // Spotlight Effect
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  function handleMouseMove({ currentTarget, clientX, clientY }) {
+    let { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+  };
 
   React.useEffect(() => {
     // Show "Xem chi tiết" if detailedDescription exists OR description is long
@@ -102,8 +118,37 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
   const imageUrl = tool.imageUrl || (domain ? `https://logo.clearbit.com/${domain}` : null);
   const headerGradient = getGradient(tool.title || tool.name);
 
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <div style={{ perspective: '1000px', height: '100%' }}>
+    <motion.div 
+      variants={cardVariants}
+      whileHover={{ y: -8, scale: 1.02 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ perspective: '1000px', height: '100%', position: 'relative' }}
+      className="tool-card-container"
+    >
+      <motion.div
+        style={{
+          position: 'absolute',
+          top: '-1px', left: '-1px', right: '-1px', bottom: '-1px',
+          borderRadius: '24px',
+          pointerEvents: 'none',
+          opacity: isHovered ? 1 : 0,
+          transition: 'opacity 0.3s ease',
+          background: useMotionTemplate`
+            radial-gradient(
+              650px circle at ${mouseX}px ${mouseY}px,
+              rgba(255,255,255,0.1),
+              transparent 80%
+            )
+          `,
+          zIndex: 10
+        }}
+      />
       <div style={{
         transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
         transformStyle: 'preserve-3d',
@@ -189,6 +234,25 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
               >
                 <Heart size={16} fill={tool.isFavorite ? '#ef4444' : 'none'} />
               </button>
+              
+              {onCompare && (
+                <button 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    onCompare(tool); 
+                  }} 
+                  style={{
+                    width: '32px', height: '32px', borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                    color: '#fff'
+                  }}
+                  title="So sánh"
+                >
+                  <Scale size={16} />
+                </button>
+              )}
               
               {isAdmin && (
                 <button 
@@ -487,6 +551,6 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, isAdmin }) 
           }));
         }}
       />
-    </div>
+    </motion.div>
   );
 }

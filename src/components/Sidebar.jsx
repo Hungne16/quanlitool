@@ -83,10 +83,16 @@ export default function Sidebar({
 
   return (
     <aside className="sidebar" style={{ 
+      margin: '1rem',
+      borderRadius: 'var(--radius-lg)',
       padding: '2rem 1.5rem', 
       background: 'var(--bg-sidebar)',
-      borderRight: '1px solid var(--border-color)',
-      zIndex: 10
+      border: '1px solid var(--border-color)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+      zIndex: 10,
+      display: 'flex',
+      flexDirection: 'column',
+      height: 'calc(100vh - 2rem)'
     }}>
       <div className="sidebar-header" style={{ padding: '0 0.5rem' }}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.5px' }}>

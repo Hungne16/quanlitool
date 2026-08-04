@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Link as LinkIcon, Type, Image as ImageIcon, FileText, LayoutList, Tag } from 'lucide-react';
+import { X, Link as LinkIcon, Type, Image as ImageIcon, FileText, LayoutList, Tag, Loader2 } from 'lucide-react';
 import ToolCard from './ToolCard';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,7 +15,8 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
   });
   
   const [tagInput, setTagInput] = useState('');
-
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analyzeError, setAnalyzeError] = useState('');
   useEffect(() => {
     if (initialData) {
       setFormData({ ...initialData, tags: initialData.tags || [] });
@@ -64,6 +65,51 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     setFormData({ title: '', url: '', description: '', detailedDescription: '', category: categories[0] || '', imageUrl: '', tags: [] });
     setTagInput('');
     onClose();
+  };
+
+  const handleAnalyzeUrl = async () => {
+    if (!formData.url) {
+      setAnalyzeError('Vui lòng nhập URL trước khi phân tích');
+      return;
+    }
+    
+    let targetUrl = formData.url;
+    if (!/^https?:\/\//i.test(targetUrl)) {
+      targetUrl = 'https://' + targetUrl;
+      setFormData(prev => ({...prev, url: targetUrl}));
+    }
+
+    setIsAnalyzing(true);
+    setAnalyzeError('');
+    
+    try {
+      const response = await fetch('/api/tools/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: targetUrl })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Lỗi khi phân tích website');
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        title: data.title || prev.title,
+        description: data.shortDescription || prev.description,
+        detailedDescription: data.fullDescription || prev.detailedDescription,
+        category: data.category || prev.category,
+        tags: data.tags && data.tags.length > 0 ? data.tags : prev.tags,
+        imageUrl: data.logo || prev.imageUrl
+      }));
+      
+    } catch (err) {
+      setAnalyzeError(err.message);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   // Create a dummy tool for the live preview
@@ -156,10 +202,40 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
               </div>
 
               <div className="input-group" style={{ marginBottom: 0 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
-                  <LinkIcon size={16} color="var(--accent-color)" /> Đường dẫn (URL) *
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600, justifyContent: 'space-between' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <LinkIcon size={16} color="var(--accent-color)" /> Đường dẫn (URL) *
+                  </span>
+                  <button 
+                    type="button" 
+                    onClick={handleAnalyzeUrl}
+                    disabled={isAnalyzing || !formData.url}
+                    style={{
+                      background: 'var(--accent-color)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '4px 12px',
+                      fontSize: '0.8rem',
+                      cursor: isAnalyzing || !formData.url ? 'not-allowed' : 'pointer',
+                      opacity: isAnalyzing || !formData.url ? 0.7 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                        Đang phân tích...
+                      </>
+                    ) : (
+                      <>✨ Analyze by AI</>
+                    )}
+                  </button>
                 </label>
                 <input required type="text" name="url" className="input-control" value={formData.url} onChange={handleChange} placeholder="VD: https://chat.openai.com" style={{ padding: '0.75rem 1rem', borderRadius: '12px' }} />
+                {analyzeError && <div style={{ color: '#ff4d4f', fontSize: '0.85rem', marginTop: '8px' }}>{analyzeError}</div>}
               </div>
 
               <div style={{ display: 'flex', gap: '1rem' }}>

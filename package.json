@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google/genai": "^2.13.0",
+    "crawl4ai": "^1.1.0",
     "firebase": "^12.16.0",
     "framer-motion": "^12.43.0",
     "lucide-react": "^1.27.0",

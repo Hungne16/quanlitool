@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import Sidebar from '../../components/Sidebar';
 import ToolGrid from '../../components/ToolGrid';
 import AddToolModal from '../../components/AddToolModal';
@@ -7,6 +8,10 @@ import ProfileModal from '../../components/ProfileModal';
 import AiAssistant from '../../components/AiAssistant';
 import ThemeToggle from '../../components/ThemeToggle';
 import TrendingCarousel from '../../components/TrendingCarousel';
+import LiveActivityToast from '../../components/LiveActivityToast';
+import ComparisonTray from '../../components/ComparisonTray';
+import ComparisonModal from '../../components/ComparisonModal';
+import TechStackSection from '../../components/TechStackSection';
 import { getTools, getCategories, saveTool, deleteTool, toggleFavorite, initStorage } from '../../utils/storage';
 import { Search, Bell, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -25,6 +30,8 @@ export default function Home() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [compareList, setCompareList] = useState([]);
+  const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
   
   const { user, profile, isAdmin } = useAuth();
 
@@ -46,24 +53,42 @@ export default function Home() {
   };
 
   const handleAddTool = async (newTool) => {
-    // If not admin, maybe mark status as pending. For now just save.
-    const toolWithStatus = {
-      ...newTool,
-      status: isAdmin ? 'approved' : 'pending',
-      submittedBy: user?.uid || 'guest'
-    };
     try {
-      await saveTool(toolWithStatus);
-      await refreshData();
-      if (!isAdmin) {
-        alert("Công cụ của bạn đã được gửi và đang chờ Admin duyệt!");
-      } else {
-        alert("Thêm công cụ thành công!");
-      }
-    } catch (err) {
-      alert("Lỗi: Không thể thêm công cụ. Có thể do Firebase Rules chặn quyền ghi.");
-      console.error(err);
+      const toolWithUser = {
+        ...newTool,
+        submittedBy: user?.uid || 'guest',
+        tags: newTool.tags || []
+      };
+      
+      const savedTool = await saveTool(toolWithUser);
+      setTools(prev => [savedTool, ...prev]);
+      setIsAddModalOpen(false);
+      
+      setTimeout(() => {
+        alert('Thêm công cụ thành công!');
+      }, 300);
+    } catch (error) {
+      console.error('Lỗi khi thêm công cụ:', error);
+      alert('Có lỗi xảy ra khi thêm công cụ');
     }
+  };
+
+  const handleCompare = (tool) => {
+    setCompareList(prev => {
+      if (prev.find(t => t.id === tool.id)) {
+        // Already in list, remove it
+        return prev.filter(t => t.id !== tool.id);
+      }
+      if (prev.length >= 3) {
+        alert("Chỉ có thể so sánh tối đa 3 công cụ cùng lúc.");
+        return prev;
+      }
+      return [...prev, tool];
+    });
+  };
+
+  const handleRemoveCompare = (id) => {
+    setCompareList(prev => prev.filter(t => t.id !== id));
   };
 
   const handleDeleteTool = async (id) => {
@@ -130,7 +155,7 @@ export default function Home() {
   }, [categoryTools, searchQuery, selectedTags, profile]);
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ position: 'relative' }}>
       <Sidebar 
         categories={categories}
         currentCategory={currentCategory} 
@@ -146,18 +171,7 @@ export default function Home() {
       />
       
       <main className="main-content">
-        <div className="top-header">
-          <div className="search-bar-container">
-            <Search size={18} className="search-icon" />
-            <input 
-              type="text" 
-              className="search-input" 
-              placeholder="Tìm kiếm công cụ, tính năng..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <div className="search-shortcut">⌘K</div>
-          </div>
+        <div className="top-header" style={{ justifyContent: 'flex-end' }}>
           
           <div className="header-actions">
             <ThemeToggle />
@@ -218,59 +232,105 @@ export default function Home() {
         <div className="content-wrapper">
           
           {currentCategory === 'Tất cả' && (
-            <div style={{
-              padding: '2.5rem',
-              borderRadius: '24px',
-              background: 'linear-gradient(135deg, rgba(100, 84, 168, 0.1) 0%, rgba(255, 126, 179, 0.05) 100%)',
-              border: '1px solid var(--border-color)',
-              marginBottom: '2rem',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              <div style={{ position: 'relative', zIndex: 1, maxWidth: '650px' }}>
-                <h1 style={{ 
-                  fontSize: '2.5rem', 
-                  fontWeight: 800, 
-                  marginBottom: '1rem',
-                  background: 'linear-gradient(135deg, #6454a8 0%, #ff7eb3 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  lineHeight: 1.2
-                }}>
-                  Khám phá kho công cụ AI & Tiện ích đỉnh cao
-                </h1>
-                <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-                  Chào mừng bạn đến với thư viện công cụ trực tuyến. Tại đây, chúng tôi tổng hợp và phân loại hàng trăm tiện ích thiết thực giúp nâng cao hiệu suất làm việc của bạn. Hãy đăng nhập để lưu trữ bộ công cụ yêu thích của riêng mình nhé!
-                </p>
-                {!user && (
-                  <button 
-                    onClick={() => setIsAuthModalOpen(true)}
-                    className="btn btn-primary"
-                    style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', fontSize: '1rem', fontWeight: 600, background: 'linear-gradient(135deg, #7463c6, #ff7eb3)', border: 'none', boxShadow: '0 10px 20px rgba(116, 99, 198, 0.2)' }}
-                  >
-                    Bắt đầu sử dụng ngay
-                  </button>
-                )}
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              style={{
+                padding: '4rem 2.5rem',
+                borderRadius: '32px',
+                background: 'rgba(255, 255, 255, 0.02)',
+                backdropFilter: 'blur(24px) saturate(180%)',
+                border: '1px solid var(--border-color)',
+                marginBottom: '3rem',
+                position: 'relative',
+                overflow: 'hidden',
+                textAlign: 'center',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)'
+              }}
+            >
+              <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+                <motion.h1 
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.8 }}
+                  style={{ 
+                    fontSize: 'clamp(2.5rem, 5vw, 4rem)', 
+                    fontWeight: 900, 
+                    marginBottom: '1.5rem',
+                    background: 'linear-gradient(135deg, #a5b4fc 0%, #fbcfe8 50%, #a5f3fc 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    lineHeight: 1.1,
+                    letterSpacing: '-0.03em'
+                  }}
+                >
+                  Khám phá tương lai của tiện ích
+                </motion.h1>
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem auto' }}
+                >
+                  Nâng tầm hiệu suất với hàng trăm công cụ AI và tiện ích thông minh, được tuyển chọn kỹ lưỡng dành riêng cho bạn.
+                </motion.p>
+                
+                {/* Massive Search Bar in Hero */}
+                <motion.div 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.5, type: 'spring', stiffness: 200, damping: 20 }}
+                  style={{
+                    position: 'relative',
+                    maxWidth: '600px',
+                    margin: '0 auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: 'var(--bg-header)',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '100px',
+                    border: '1px solid var(--border-highlight)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+                  }}
+                >
+                  <Search size={24} style={{ color: 'var(--text-muted)', marginRight: '1rem' }} />
+                  <input 
+                    type="text" 
+                    placeholder="Tìm kiếm công cụ, tính năng..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      color: 'var(--text-primary)',
+                      fontSize: '1.1rem',
+                      width: '100%'
+                    }}
+                  />
+                  <div style={{
+                    background: 'var(--surface-color)',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '12px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: 'var(--text-muted)',
+                    border: '1px solid var(--border-color)'
+                  }}>⌘K</div>
+                </motion.div>
               </div>
               
-              {/* Decorative elements */}
-              <div style={{
-                position: 'absolute',
-                top: '-50px',
-                right: '-50px',
-                width: '300px',
-                height: '300px',
-                background: 'linear-gradient(135deg, #7463c6, #ff7eb3)',
-                borderRadius: '50%',
-                filter: 'blur(80px)',
-                opacity: 0.15,
-                zIndex: 0
-              }}></div>
-            </div>
+              {/* Heavy GPU blurs removed for performance */}
+            </motion.div>
           )}
 
           {currentCategory === 'Tất cả' && !searchQuery && selectedTags.length === 0 && (
-            <TrendingCarousel tools={tools.filter(t => t.status !== 'pending' && t.status !== 'rejected')} />
+            <>
+              <TrendingCarousel tools={tools.filter(t => t.status !== 'pending' && t.status !== 'rejected')} />
+              <TechStackSection tools={tools} setTools={setTools} />
+            </>
           )}
 
           <header className="page-header">
@@ -308,11 +368,34 @@ export default function Home() {
             </div>
           </header>
 
-          <ToolGrid tools={filteredTools} onDelete={handleDeleteTool} onToggleFavorite={handleToggleFavorite} isAdmin={isAdmin} />
+          <ToolGrid 
+            tools={filteredTools} 
+            onDelete={handleDeleteTool} 
+            onToggleFavorite={handleToggleFavorite}
+            onCompare={handleCompare}
+            isAdmin={user?.role === 'admin'}
+          />
         </div>
       </main>
 
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <ComparisonTray 
+        compareList={compareList} 
+        onRemove={handleRemoveCompare} 
+        onCompareClick={() => setIsComparisonModalOpen(true)}
+      />
+
+      <ComparisonModal 
+        isOpen={isComparisonModalOpen} 
+        onClose={() => setIsComparisonModalOpen(false)} 
+        tools={compareList} 
+      />
+
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
+
+      <LiveActivityToast tools={tools} />
 
       <AddToolModal 
         categories={categories}
