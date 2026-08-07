@@ -209,6 +209,12 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
 
   } catch (error) {
     console.error('[analyze] Error:', error);
-    return res.status(500).json({ error: error.message || 'Internal Server Error' });
+    
+    let errorMessage = error.message || 'Internal Server Error';
+    if (errorMessage.includes('429') || errorMessage.includes('Quota exceeded') || errorMessage.includes('rate-limit')) {
+      errorMessage = 'Bạn đã thao tác quá nhanh (Vượt quá giới hạn của bản miễn phí). Vui lòng đợi khoảng 15 giây rồi thử lại nhé!';
+    }
+    
+    return res.status(500).json({ error: errorMessage });
   }
 }
