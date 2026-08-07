@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Link as LinkIcon, Type, Image as ImageIcon, FileText, LayoutList, Tag, Loader2 } from 'lucide-react';
 import ToolCard from './ToolCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getTags } from '../utils/storage';
 
 export default function AddToolModal({ categories, isOpen, onClose, onSave, initialData = null }) {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
   });
   
   const [tagInput, setTagInput] = useState('');
+  const [availableTags, setAvailableTags] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analyzeError, setAnalyzeError] = useState('');
   useEffect(() => {
@@ -22,6 +24,10 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
       setFormData({ ...initialData, tags: initialData.tags || [] });
     } else if (categories && categories.length > 0) {
       setFormData(prev => ({ ...prev, category: categories[0] }));
+    }
+    
+    if (isOpen) {
+      getTags().then(tags => setAvailableTags(tags));
     }
   }, [categories, initialData, isOpen]);
 
@@ -35,16 +41,20 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
   const handleTagKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      addTag();
+      handleAddTag();
     }
   };
 
-  const addTag = () => {
-    const trimmed = tagInput.trim().toLowerCase();
+  const handleAddTag = () => {
+    const trimmed = tagInput.trim();
     if (trimmed && !formData.tags.includes(trimmed)) {
-      setFormData(prev => ({ ...prev, tags: [...prev.tags, trimmed] }));
+      if (availableTags.includes(trimmed)) {
+        setFormData(prev => ({ ...prev, tags: [...prev.tags, trimmed] }));
+        setTagInput('');
+      } else {
+        alert('Vui lòng chọn Tag từ danh sách gợi ý hợp lệ!');
+      }
     }
-    setTagInput('');
   };
 
   const removeTag = (tagToRemove) => {
@@ -88,7 +98,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: targetUrl, apiKey: clientApiKey, categories: availableCategories })
+        body: JSON.stringify({ url: targetUrl, apiKey: clientApiKey, categories: availableCategories, tags: availableTags })
       });
       
       const data = await response.json();
@@ -275,7 +285,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
                       padding: '0.25rem 0.5rem', borderRadius: '16px', fontSize: '0.8rem' 
                     }}>
                       {tag}
-                      <X size={14} style={{ cursor: 'pointer' }} onClick={() => removeTag(tag)} />
+                      <X size={14} style={{ cursor: 'pointer' }} onClick={() => handleRemoveTag(tag)} />
                     </span>
                   ))}
                   <input 
@@ -283,10 +293,16 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={handleTagKeyDown}
-                    onBlur={() => tagInput.trim() && addTag()}
+                    onBlur={() => tagInput.trim() && handleAddTag()}
                     placeholder={formData.tags.length === 0 ? "Nhập tag và nhấn Enter..." : ""}
                     style={{ border: 'none', background: 'transparent', outline: 'none', flex: 1, minWidth: '120px', fontSize: '0.9rem' }}
+                    list="available-tags"
                   />
+                  <datalist id="available-tags">
+                    {availableTags.map(t => (
+                      <option key={t} value={t} />
+                    ))}
+                  </datalist>
                 </div>
               </div>
 

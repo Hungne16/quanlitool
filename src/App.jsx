@@ -10,6 +10,7 @@ import Dashboard from './pages/admin/Dashboard';
 import Users from './pages/admin/Users';
 import Tools from './pages/admin/Tools';
 import Categories from './pages/admin/Categories';
+import Tags from './pages/admin/Tags';
 
 // Protected Route Wrapper
 const AdminRoute = ({ children }) => {
@@ -36,6 +37,7 @@ function AppRoutes() {
         <Route path="users" element={<Users />} />
         <Route path="tools" element={<Tools />} />
         <Route path="categories" element={<Categories />} />
+        <Route path="tags" element={<Tags />} />
         <Route path="settings" element={<div style={{padding:'2rem'}}><h1>Cài đặt hệ thống</h1><p>Đang phát triển...</p></div>} />
       </Route>
     </Routes>

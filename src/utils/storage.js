@@ -37,6 +37,47 @@ export const saveCategories = async (categories) => {
   }
 };
 
+// --- TAGS ---
+
+export const GLOBAL_DEFAULT_TAGS = [
+  'UI/UX',
+  'Open Source',
+  'Developer Tools',
+  'Marketing',
+  'SEO',
+  'Design',
+  'Productivity',
+  'Analytics',
+  'Free',
+  'API',
+  'No-Code'
+];
+
+export const getTags = async () => {
+  try {
+    const docRef = doc(db, "settings", "tags");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data().list;
+    } else {
+      await saveTags(GLOBAL_DEFAULT_TAGS);
+      return GLOBAL_DEFAULT_TAGS;
+    }
+  } catch (error) {
+    console.error("Error getting tags:", error);
+    return GLOBAL_DEFAULT_TAGS;
+  }
+};
+
+export const saveTags = async (tags) => {
+  try {
+    const docRef = doc(db, "settings", "tags");
+    await setDoc(docRef, { list: tags });
+  } catch (error) {
+    console.error("Error saving tags:", error);
+  }
+};
+
 // --- TOOLS ---
 
 export const getTools = async () => {

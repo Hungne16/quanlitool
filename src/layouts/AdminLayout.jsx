@@ -8,7 +8,7 @@ import VerticalDock from '../components/VerticalDock';
 import { 
   Users, LayoutDashboard, Settings, Layers, LogOut, ArrowLeft, 
   PlusSquare, Bell, Search, BarChart2, CheckSquare, Server,
-  Cpu, HardDrive, Zap, ChevronDown, Home, Check
+  Cpu, HardDrive, Zap, ChevronDown, Home, Check, Tag
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -48,6 +48,7 @@ export default function AdminLayout() {
     { name: 'Quản lý người dùng', path: '/admin/users', icon: <Users size={20} /> },
     { name: 'Quản lý công cụ', path: '/admin/tools', icon: <PlusSquare size={20} /> },
     { name: 'Quản lý danh mục', path: '/admin/categories', icon: <Layers size={20} /> },
+    { name: 'Quản lý Tags', path: '/admin/tags', icon: <Tag size={20} /> },
     { name: 'Thống kê', path: '/admin/stats', icon: <BarChart2 size={20} /> },
     { name: 'Cài đặt', path: '/admin/settings', icon: <Settings size={20} /> },
   ];
