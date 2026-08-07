@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import { Check, X, Trash2, Edit, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, X, Trash2, Edit, ExternalLink, ChevronDown, ChevronUp, Search } from 'lucide-react';
 import AddToolModal from '../../components/AddToolModal';
 import { getCategories } from '../../utils/storage';
 
@@ -46,6 +46,11 @@ export default function Tools() {
   const [editingTool, setEditingTool] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [linkFilter, setLinkFilter] = useState('all'); // all, dead
+
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanTotal, setScanTotal] = useState(0);
 
   useEffect(() => {
     fetchTools();
@@ -145,8 +150,55 @@ export default function Tools() {
     const matchesCategory = selectedCategory ? t.category === selectedCategory : true;
     const matchesSearch = (t.title || t.name || '').toLowerCase().includes((searchQuery || '').toLowerCase()) || 
                           (t.description || '').toLowerCase().includes((searchQuery || '').toLowerCase());
-    return matchesCategory && matchesSearch;
+    const matchesLink = linkFilter === 'all' || (linkFilter === 'dead' && t.linkStatus === 'dead');
+    return matchesCategory && matchesSearch && matchesLink;
   });
+
+  const handleScanLinks = async () => {
+    if (isScanning) return;
+    if (!window.confirm('Quá trình quét có thể mất vài phút. Bạn có muốn bắt đầu?')) return;
+    
+    setIsScanning(true);
+    setScanTotal(tools.length);
+    setScanProgress(0);
+
+    let currentProgress = 0;
+    const batchSize = 5;
+
+    for (let i = 0; i < tools.length; i += batchSize) {
+      const batch = tools.slice(i, i + batchSize);
+      await Promise.all(batch.map(async (tool) => {
+        try {
+          const res = await fetch('/api/check-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: tool.url })
+          });
+          const data = await res.json();
+          
+          let newLinkStatus = data.isDead ? 'dead' : 'alive';
+          let updateData = { linkStatus: newLinkStatus };
+          
+          // User requested: change status to pending if dead
+          if (data.isDead && tool.status === 'approved') {
+            updateData.status = 'pending';
+          }
+          
+          if (tool.linkStatus !== newLinkStatus || updateData.status) {
+            await updateDoc(doc(db, 'tools', tool.id), updateData);
+          }
+        } catch (err) {
+          console.error(`Failed to scan ${tool.url}`, err);
+        } finally {
+          currentProgress++;
+          setScanProgress(currentProgress);
+        }
+      }));
+    }
+    
+    setIsScanning(false);
+    fetchTools();
+  };
 
   if (loading) return <div style={{ padding: '2rem' }}>Đang tải...</div>;
 
@@ -158,6 +210,22 @@ export default function Tools() {
           <p style={{ color: 'var(--text-secondary)' }}>Hệ thống hiện đang có <strong>{tools.length}</strong> công cụ</p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <select 
+            value={linkFilter} 
+            onChange={(e) => setLinkFilter(e.target.value)}
+            style={{ 
+              padding: '0.5rem 1rem', 
+              borderRadius: '8px', 
+              border: '1px solid var(--border-color)', 
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="all">Tất cả trạng thái link</option>
+            <option value="dead">Chỉ link hỏng</option>
+          </select>
           <div style={{ position: 'relative' }}>
             <input 
               type="text" 
@@ -194,6 +262,15 @@ export default function Tools() {
             ))}
           </select>
           <button 
+            className="btn btn-secondary"
+            onClick={handleScanLinks}
+            disabled={isScanning}
+            style={{ padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, display: 'flex', gap: '0.5rem', alignItems: 'center', background: isScanning ? 'var(--bg-secondary)' : '#ef4444', color: isScanning ? 'var(--text-muted)' : '#fff', border: 'none' }}
+          >
+            <Search size={16} /> 
+            {isScanning ? `Đang quét (${scanProgress}/${scanTotal})` : 'Quét link hỏng'}
+          </button>
+          <button 
             className="btn btn-primary"
             onClick={() => setIsAddModalOpen(true)}
             style={{ padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600 }}
@@ -221,7 +298,16 @@ export default function Tools() {
               return (
                 <tr key={t.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                   <td style={{ padding: '1rem', maxWidth: '300px' }}>
-                    <div style={{ fontWeight: 600 }}>{t.title}</div>
+                    <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {t.title}
+                      {t.linkStatus === 'dead' ? (
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', title: 'Link hỏng' }} />
+                      ) : t.linkStatus === 'alive' ? (
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', title: 'Link hoạt động tốt' }} />
+                      ) : (
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#cbd5e1', title: 'Chưa kiểm tra' }} />
+                      )}
+                    </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                       <TruncatedLink url={t.url} />
                     </div>
