@@ -8,34 +8,43 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'URL is required' });
   }
 
-  // Set timeout to 6 seconds to avoid function timeout on serverless
+  // Set timeout to 10 seconds to give slow sites a chance
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 6000);
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+  const fetchHeaders = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Connection': 'keep-alive'
+  };
 
   try {
     // Try HEAD first to save bandwidth
     let response = await fetch(url, {
       method: 'HEAD',
       signal: controller.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
+      headers: fetchHeaders
     });
 
-    // If HEAD is not allowed (405) or returns 404, we should try a normal GET just in case the server blocks HEAD requests
-    if (response.status === 405 || response.status === 404) {
+    // If HEAD is not allowed (405) or returns 404/403, we should try a normal GET 
+    // just in case the server blocks HEAD requests
+    if (response.status === 405 || response.status === 404 || response.status === 403) {
       response = await fetch(url, {
         method: 'GET',
         signal: controller.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
+        headers: fetchHeaders
       });
     }
 
     clearTimeout(timeoutId);
 
-    if (response.status >= 400) {
+    // Mặc định các mã lỗi 403 (Forbidden), 401 (Unauthorized), 429 (Rate Limit), 503 (Service Unavailable) 
+    // thường là do tường lửa (Cloudflare) chặn Bot chặn Bot, nghĩa là trang web VẪN SỐNG.
+    // Chỉ đánh dấu chết nếu là 404 (Not Found), 410 (Gone), 500 (Internal Error), hoặc các lỗi máy chủ nghiêm trọng khác.
+    const falsePositives = [401, 403, 405, 406, 429, 502, 503];
+    
+    if (response.status >= 400 && !falsePositives.includes(response.status)) {
       return res.status(200).json({ isDead: true, status: response.status, reason: `HTTP ${response.status}` });
     }
 
