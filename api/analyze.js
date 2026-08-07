@@ -176,6 +176,11 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
       resultJson = JSON.parse(cleanJson);
     }
 
+    // Force category to "Repo" if it's a GitHub URL
+    if (url.toLowerCase().includes('github.com')) {
+      resultJson.category = 'Repo';
+    }
+
     // Extract logo from HTML headers since images are stripped from the AI prompt
     let extractedLogoUrl = '';
     if (mainHtml) {
