@@ -96,10 +96,8 @@ export default function Sidebar({
     }}>
       <div className="sidebar-header" style={{ padding: '0 0.5rem' }}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.5px' }}>
-          <div style={{ background: 'linear-gradient(135deg, var(--accent-color), #3b82f6)', padding: '0.4rem', borderRadius: 'var(--radius-md)', display: 'flex' }}>
-            <LayoutGrid color="white" size={20} />
-          </div>
-          ToolHub
+          <img src="/logo.png" alt="BeeTools Logo" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
+          <span style={{ color: '#fbbf24' }}>BeeTools</span>
         </h2>
       </div>
 
