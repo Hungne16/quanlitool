@@ -52,7 +52,7 @@ export default async function handler(req, res) {
       console.warn(`[analyze] Crawl4AI failed (${crawlerError.message}). Falling back to native fetch...`);
       const fallbackResponse = await fetch(url, { headers: fetchHeaders });
       if (!fallbackResponse.ok) {
-        throw new Error(`Fallback fetch failed with status: ${fallbackResponse.status}`);
+        throw new Error(`SCRAPE_ERROR: Trình trích xuất không thể truy cập trang web này (Lỗi ${fallbackResponse.status}). Website có thể chặn bot.`);
       }
       mainHtml = await fallbackResponse.text();
       const $fallback = cheerio.load(mainHtml);
@@ -164,7 +164,7 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
 }`;
 
     const interaction = await aiClient.interactions.create({
-      model: "gemini-3.6-flash",
+      model: "gemini-2.5-flash",
       input: prompt
     });
 
@@ -215,8 +215,13 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
     console.error('[analyze] Error:', error);
     
     let errorMessage = error.message || 'Internal Server Error';
+    
+    if (errorMessage.includes('SCRAPE_ERROR:')) {
+      return res.status(400).json({ error: errorMessage.replace('SCRAPE_ERROR: ', '') });
+    }
+    
     if (errorMessage.includes('429') || errorMessage.includes('Quota exceeded') || errorMessage.includes('rate-limit')) {
-      errorMessage = 'Bạn đã thao tác quá nhanh (Vượt quá giới hạn của bản miễn phí). Vui lòng đợi khoảng 15 giây rồi thử lại nhé!';
+      errorMessage = 'Lỗi API AI: Vượt quá giới hạn gọi AI của Google (Quota Exceeded). Vui lòng đợi 15 giây hoặc nhập API Key của riêng bạn!';
     }
     
     return res.status(500).json({ error: errorMessage });
