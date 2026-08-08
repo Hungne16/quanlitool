@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, MinusCircle, Star } from 'lucide-react';
+import BattleArena from './BattleArena';
 
 export default function ComparisonModal({ isOpen, onClose, tools }) {
   if (!isOpen || tools.length === 0) return null;
@@ -55,9 +56,13 @@ export default function ComparisonModal({ isOpen, onClose, tools }) {
             <X size={20} />
           </button>
 
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '2rem', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: tools.length === 2 ? '1rem' : '2rem', textAlign: 'center' }}>
             So sánh Công cụ
           </h2>
+
+          {tools.length === 2 && (
+            <BattleArena tool1={tools[0]} tool2={tools[1]} />
+          )}
 
           <div style={{
             display: 'grid',
