@@ -49,16 +49,16 @@ export async function executeWithKeyRotation(prompt, clientApiKey = null, model 
       
       const aiClient = new GoogleGenAI({ apiKey: currentKey });
       
-      const interaction = await aiClient.interactions.create({
+      const response = await aiClient.models.generateContent({
         model: model,
-        input: prompt
+        contents: prompt
       });
       
       if (i > 0) {
         console.log(`[gemini] Successfully generated response using fallback Key ${i + 1}!`);
       }
       
-      return interaction.output_text;
+      return response.text;
       
     } catch (error) {
       lastError = error;
