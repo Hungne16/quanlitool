@@ -65,7 +65,7 @@ export default function ComparisonModal({ isOpen, onClose, tools }) {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           style={{
-            background: 'var(--bg-panel)',
+            background: 'var(--bg-color)',
             border: '1px solid var(--border-color)',
             borderRadius: '24px',
             width: '100%',

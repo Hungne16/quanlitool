@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sword, Zap, Shield } from 'lucide-react';
+import { Sword, Zap, Shield, Crown } from 'lucide-react';
 
 const FloatingMech = ({ tool, isLeft, state }) => {
   const initialChar = (tool.title || tool.name || '?').charAt(0);
@@ -80,6 +80,27 @@ const FloatingMech = ({ tool, isLeft, state }) => {
         ) : (
           <span style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>{initialChar}</span>
         )}
+      </motion.div>
+
+      {/* Victory Crown */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          top: '-35px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10,
+          color: '#fbbf24',
+          filter: 'drop-shadow(0 0 10px #fbbf24)'
+        }}
+        animate={{
+          opacity: isVictory ? 1 : 0,
+          y: isVictory ? [10, 0] : 0,
+          scale: isVictory ? [0.5, 1.2, 1] : 0.5
+        }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Crown size={40} fill="#fbbf24" strokeWidth={1.5} />
       </motion.div>
 
       {/* Floating Hand & Sword (Only if not defeated) */}
