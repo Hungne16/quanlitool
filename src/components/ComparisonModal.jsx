@@ -1,9 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle2, MinusCircle, Star } from 'lucide-react';
+import { X, CheckCircle2, MinusCircle, Star, Sparkles } from 'lucide-react';
 import BattleArena from './BattleArena';
 
 export default function ComparisonModal({ isOpen, onClose, tools }) {
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [verdictData, setVerdictData] = useState(null);
+
+  useEffect(() => {
+    if (isOpen && tools.length === 2) {
+      // Reset state
+      setVerdictData(null);
+      setIsEvaluating(true);
+
+      const fetchComparison = async () => {
+        try {
+          const response = await fetch('/api/compare', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool1: tools[0], tool2: tools[1] })
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setVerdictData(data);
+          } else {
+            console.error('Failed to fetch AI comparison');
+            setVerdictData({ winnerId: 'draw', verdict: 'Lỗi khi gọi trọng tài AI.' });
+          }
+        } catch (error) {
+          console.error(error);
+          setVerdictData({ winnerId: 'draw', verdict: 'Không thể kết nối với trọng tài AI.' });
+        } finally {
+          setIsEvaluating(false);
+        }
+      };
+
+      fetchComparison();
+    }
+  }, [isOpen, tools]);
+
   if (!isOpen || tools.length === 0) return null;
 
   return (
@@ -61,7 +96,79 @@ export default function ComparisonModal({ isOpen, onClose, tools }) {
           </h2>
 
           {tools.length === 2 && (
-            <BattleArena tool1={tools[0]} tool2={tools[1]} />
+            <>
+              <BattleArena 
+                tool1={tools[0]} 
+                tool2={tools[1]} 
+                isEvaluating={isEvaluating} 
+                winnerId={verdictData?.winnerId} 
+              />
+              
+              {/* Bảng báo cáo của Trọng tài AI */}
+              {verdictData && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    background: 'var(--surface-color)',
+                    borderRadius: '20px',
+                    padding: '2rem',
+                    marginBottom: '2rem',
+                    border: '1px solid var(--border-color)',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: '#8b5cf6' }}>
+                    <Sparkles size={24} />
+                    <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Phán quyết của Trọng tài AI</h3>
+                  </div>
+
+                  <p style={{ fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '2rem', fontWeight: 500 }}>
+                    {verdictData.verdict}
+                  </p>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                    {/* Tool A */}
+                    <div>
+                      <h4 style={{ color: '#3b82f6', marginBottom: '1rem', fontWeight: 700, fontSize: '1.1rem' }}>
+                        {tools[0].title || tools[0].name}
+                      </h4>
+                      <div style={{ marginBottom: '1rem' }}>
+                        <strong style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>Ưu điểm:</strong>
+                        <ul style={{ paddingLeft: '1.5rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {(verdictData.prosA || []).map((pro, idx) => <li key={idx}>{pro}</li>)}
+                        </ul>
+                      </div>
+                      <div>
+                        <strong style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>Nhược điểm:</strong>
+                        <ul style={{ paddingLeft: '1.5rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem', color: 'var(--text-muted)' }}>
+                          {(verdictData.consA || []).map((con, idx) => <li key={idx}>{con}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Tool B */}
+                    <div>
+                      <h4 style={{ color: '#ef4444', marginBottom: '1rem', fontWeight: 700, fontSize: '1.1rem' }}>
+                        {tools[1].title || tools[1].name}
+                      </h4>
+                      <div style={{ marginBottom: '1rem' }}>
+                        <strong style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>Ưu điểm:</strong>
+                        <ul style={{ paddingLeft: '1.5rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {(verdictData.prosB || []).map((pro, idx) => <li key={idx}>{pro}</li>)}
+                        </ul>
+                      </div>
+                      <div>
+                        <strong style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>Nhược điểm:</strong>
+                        <ul style={{ paddingLeft: '1.5rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem', color: 'var(--text-muted)' }}>
+                          {(verdictData.consB || []).map((con, idx) => <li key={idx}>{con}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </>
           )}
 
           <div style={{
