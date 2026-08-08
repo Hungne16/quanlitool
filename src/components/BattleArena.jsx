@@ -32,9 +32,9 @@ const FloatingMech = ({ tool, isLeft, state }) => {
           scale: 1
         } : isVictory ? {
           x: isLeft ? 100 : -100, // Move to center
-          y: -50,
+          y: -20, // Lowered from -50 to avoid clipping
           rotate: 0,
-          scale: 1.5,
+          scale: 1.2, // Slightly smaller to fit sword
           opacity: 1
         } : { // defeat
           x: isLeft ? -50 : 50,
@@ -126,9 +126,9 @@ const FloatingMech = ({ tool, isLeft, state }) => {
             x: isLeft ? [0, 20, -10, 0] : [0, -20, 10, 0],
             opacity: 1
           } : isVictory ? {
-            rotate: isLeft ? -45 : 45, // Victory pose
+            rotate: isLeft ? -30 : 30, // Victory pose (flatter angle)
             x: 0,
-            y: -20,
+            y: 0, // Lowered
             opacity: 1
           } : { // defeat
             y: 100, // Drop sword
@@ -243,7 +243,9 @@ export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
       style={{
         width: '100%',
         height: '320px',
-        background: 'radial-gradient(circle at center, #1e1e2e 0%, #0f0f16 100%)',
+        backgroundImage: 'url(/arena-bg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center bottom',
         borderRadius: '24px',
         marginBottom: '2rem',
         position: 'relative',
@@ -267,20 +269,6 @@ export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
         times: [0, 0.38, 0.4, 0.42, 0.45, 0.48, 0.5, 1]
       } : {}}
     >
-      {/* Cyberpunk Grid Background */}
-      <div style={{
-        position: 'absolute',
-        top: 0, left: 0, right: 0, bottom: 0,
-        backgroundImage: `
-          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
-        `,
-        backgroundSize: '30px 30px',
-        transform: 'perspective(500px) rotateX(60deg) translateY(-100px) scale(2)',
-        opacity: 0.5,
-        zIndex: 1
-      }} />
-
       {/* VS Neon Text */}
       <div style={{ 
         position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)', 
