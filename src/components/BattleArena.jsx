@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sword, Zap, Shield, Crown } from 'lucide-react';
 
@@ -10,6 +10,8 @@ const FloatingMech = ({ tool, isLeft, state }) => {
   const isFighting = state === 'fighting';
   const isVictory = state === 'victory';
   const isDefeat = state === 'defeat';
+  const isFinishingWinner = state === 'finishing_winner';
+  const isFinishingLoser = state === 'finishing_loser';
 
   return (
     <motion.div 
@@ -30,6 +32,18 @@ const FloatingMech = ({ tool, isLeft, state }) => {
           rotate: isLeft ? [0, 15, -5, 0] : [0, -15, 5, 0],
           opacity: 1,
           scale: 1
+        } : isFinishingWinner ? {
+          x: isLeft ? [0, -40, 250] : [0, 40, -250], // Anime dash past enemy
+          y: [0, -20, 0],
+          rotate: isLeft ? [0, -15, 45] : [0, 15, -45], // Lean into attack
+          scale: 1.3,
+          opacity: 1
+        } : isFinishingLoser ? {
+          x: isLeft ? [0, 10, -100] : [0, -10, 100], // Knocked back
+          y: [0, -20, 50],
+          rotate: isLeft ? [0, 45, -180] : [0, -45, 180], // Spin out of control
+          scale: [1, 1.2, 0.5],
+          opacity: [1, 1, 0]
         } : isVictory ? {
           x: isLeft ? 100 : -100, // Move to center
           y: -20, // Lowered from -50 to avoid clipping
@@ -50,6 +64,10 @@ const FloatingMech = ({ tool, isLeft, state }) => {
           repeat: Infinity,
           ease: "easeInOut",
           times: [0, 0.4, 0.6, 1]
+        } : isFinishingWinner || isFinishingLoser ? {
+          duration: 1.5,
+          times: [0, 0.4, 1],
+          ease: "easeInOut"
         } : {
           duration: 1,
           ease: "easeInOut"
@@ -125,6 +143,15 @@ const FloatingMech = ({ tool, isLeft, state }) => {
             rotate: isLeft ? [0, -90, 60, 0] : [0, 90, -60, 0],
             x: isLeft ? [0, 20, -10, 0] : [0, -20, 10, 0],
             opacity: 1
+          } : isFinishingWinner ? {
+            rotate: isLeft ? [0, -90, 90] : [0, 90, -90], // Big swing
+            x: isLeft ? [0, -20, 50] : [0, 20, -50],
+            scale: [1, 1.5, 2],
+            opacity: 1
+          } : isFinishingLoser ? {
+            y: 50,
+            rotate: isLeft ? -180 : 180,
+            opacity: 0
           } : isVictory ? {
             rotate: isLeft ? -30 : 30, // Victory pose (flatter angle)
             x: 0,
@@ -135,7 +162,11 @@ const FloatingMech = ({ tool, isLeft, state }) => {
             opacity: 0
           }
         }
-        transition={isFighting ? { duration: 2, repeat: Infinity, ease: "easeInOut", times: [0, 0.3, 0.5, 1] } : { duration: 0.5 }}
+        transition={
+          isFighting ? { duration: 2, repeat: Infinity, ease: "easeInOut", times: [0, 0.3, 0.5, 1] } 
+          : isFinishingWinner ? { duration: 1.5, times: [0, 0.4, 1], ease: "anticipate" }
+          : { duration: 0.5 }
+        }
       >
         {/* Energy Sword */}
         <div style={{ 
@@ -175,12 +206,12 @@ const FloatingMech = ({ tool, isLeft, state }) => {
           isFighting ? {
             x: isLeft ? [0, -10, 5, 0] : [0, 10, -5, 0],
             opacity: 0.8
-          } : isVictory ? {
-            opacity: 0 // Winner hides shield for pose
-          } : { // defeat
+          } : isFinishingWinner || isVictory ? {
+            opacity: 0 // Winner hides shield for attack/pose
+          } : isFinishingLoser || isDefeat ? {
             y: 100, // Drop shield
             opacity: 0
-          }
+          } : {}
         }
         transition={isFighting ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : { duration: 0.5 }}
       >
@@ -218,13 +249,36 @@ const FloatingMech = ({ tool, isLeft, state }) => {
 };
 
 export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
+  const [phase, setPhase] = useState('fighting');
+
+  useEffect(() => {
+    if (isEvaluating || winnerId === null || winnerId === undefined) {
+      setPhase('fighting');
+    } else if (winnerId === 'draw') {
+      setPhase('draw');
+    } else {
+      // Winner is decided -> trigger finishing move
+      setPhase('finishing');
+      const timer = setTimeout(() => {
+        setPhase('done');
+      }, 1500); // Wait 1.5s for the finishing move animation
+      return () => clearTimeout(timer);
+    }
+  }, [isEvaluating, winnerId]);
+
   if (!tool1 || !tool2) return null;
 
   const getMechState = (mechId) => {
-    if (isEvaluating || winnerId === null || winnerId === undefined) return 'fighting';
-    if (winnerId === 'draw') return 'fighting'; // Keeps fighting forever
-    if (winnerId === mechId) return 'victory';
-    return 'defeat';
+    if (phase === 'fighting' || phase === 'draw') return 'fighting';
+    
+    if (phase === 'finishing') {
+      return winnerId === mechId ? 'finishing_winner' : 'finishing_loser';
+    }
+    
+    if (phase === 'done') {
+      return winnerId === mechId ? 'victory' : 'defeat';
+    }
+    return 'fighting';
   };
 
   const state1 = getMechState(tool1.id);
@@ -232,11 +286,11 @@ export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
 
   // Health calculation
   const getHealth = (state) => {
-    if (state === 'fighting' || state === 'victory') return '100%';
+    if (state === 'fighting' || state === 'victory' || state === 'finishing_winner') return '100%';
     return '0%';
   };
 
-  const isCombatActive = state1 === 'fighting' && state2 === 'fighting';
+  const isCombatActive = phase === 'fighting';
 
   return (
     <motion.div 
@@ -370,6 +424,26 @@ export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
             }}
           />
         </>
+      )}
+
+      {/* Finishing Slash Effect */}
+      {phase === 'finishing' && (
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '400px',
+            height: '8px',
+            background: '#fff',
+            borderRadius: '10px',
+            boxShadow: `0 0 30px 10px ${winnerId === tool1.id ? '#3b82f6' : '#ef4444'}`, 
+            zIndex: 30,
+          }}
+          initial={{ scaleX: 0, opacity: 1, rotate: winnerId === tool1.id ? 30 : -30, x: '-50%', y: '-50%' }}
+          animate={{ scaleX: [0, 1, 0], opacity: [1, 1, 0] }}
+          transition={{ duration: 0.5, delay: 0.4 }} // Triggers when the winner dashes through
+        />
       )}
 
       {/* Player 1 */}
