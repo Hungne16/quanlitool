@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
@@ -12,6 +12,7 @@ import Users from './pages/admin/Users';
 import Tools from './pages/admin/Tools';
 import Categories from './pages/admin/Categories';
 import Tags from './pages/admin/Tags';
+import { trackPageView } from './utils/storage';
 
 // Protected Route Wrapper
 const AdminRoute = ({ children }) => {
@@ -21,6 +22,12 @@ const AdminRoute = ({ children }) => {
 };
 
 function AppRoutes() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView();
+  }, [location]);
+
   return (
     <Routes>
       <Route path="/" element={<Home />} />

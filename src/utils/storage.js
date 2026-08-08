@@ -360,3 +360,34 @@ export const initStorage = async () => {
     }
   }
 };
+
+// --- ANALYTICS ---
+export const trackPageView = async () => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const docRef = doc(db, "analytics", today);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      await updateDoc(docRef, { pageViews: docSnap.data().pageViews + 1 });
+    } else {
+      await setDoc(docRef, { pageViews: 1, date: today });
+    }
+  } catch (error) {
+    console.error("Error tracking page view:", error);
+  }
+};
+
+export const getAnalyticsData = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "analytics"));
+    const data = [];
+    querySnapshot.forEach((doc) => {
+      data.push(doc.data());
+    });
+    return data.sort((a, b) => new Date(a.date) - new Date(b.date));
+  } catch (error) {
+    console.error("Error getting analytics:", error);
+    return [];
+  }
+};
+

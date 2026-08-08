@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import { getCategories } from '../../utils/storage';
+import { getCategories, getAnalyticsData } from '../../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, PenTool, Folder, TrendingUp, 
@@ -22,7 +22,9 @@ export default function Dashboard() {
     activeTools: 0,
     lockedTools: 0,
     topTools: [],
-    recentChats: []
+    recentChats: [],
+    analytics: [],
+    toolsByCategory: []
   });
 
   useEffect(() => {
@@ -31,19 +33,34 @@ export default function Dashboard() {
         const usersSnap = await getDocs(collection(db, 'users'));
         const toolsSnap = await getDocs(collection(db, 'tools'));
         const categoriesData = await getCategories();
+        const analyticsData = await getAnalyticsData();
         
         let active = 0;
         let maintenance = 0;
         let locked = 0;
 
         const toolsList = [];
+        const categoryCounts = {};
+        
+        // Initialize categoryCounts with 0 for all categories
+        categoriesData.forEach(cat => categoryCounts[cat] = 0);
+
         toolsSnap.forEach(doc => {
           const data = doc.data();
           toolsList.push({ id: doc.id, ...data });
           if (data.status === 'Bảo trì') maintenance++;
           else if (data.status === 'Tạm khóa') locked++;
           else active++;
+          
+          if (data.category) {
+            categoryCounts[data.category] = (categoryCounts[data.category] || 0) + 1;
+          }
         });
+        
+        const toolsByCategory = Object.keys(categoryCounts).map(cat => ({
+          name: cat,
+          count: categoryCounts[cat]
+        }));
 
         // Get Top Tools by Clicks
         const topTools = [...toolsList].sort((a, b) => (b.clicks || 0) - (a.clicks || 0)).slice(0, 5);
@@ -65,7 +82,9 @@ export default function Dashboard() {
           maintenanceTools: maintenance,
           lockedTools: locked,
           topTools,
-          recentChats
+          recentChats,
+          analytics: analyticsData,
+          toolsByCategory
         });
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -74,24 +93,24 @@ export default function Dashboard() {
     fetchStats();
   }, []);
 
-  // Mock data for line and bar charts (as we don't have historical data tracked in firestore yet)
-  const lineData = [
-    { name: '01/06', truyCap: 4000, api: 2400 },
-    { name: '08/06', truyCap: 3000, api: 1398 },
-    { name: '15/06', truyCap: 5000, api: 4800 },
-    { name: '22/06', truyCap: 4780, api: 3908 },
-    { name: '29/06', truyCap: 5890, api: 4800 },
-  ];
+  // Prepare Real Analytics data for LineChart
+  const lineData = stats.analytics.length > 0 
+    ? stats.analytics.map(item => {
+        const d = new Date(item.date);
+        return {
+          name: `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`,
+          truyCap: item.pageViews || 0
+        };
+      })
+    : [{ 
+        name: new Date().toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit'}), 
+        truyCap: 1 
+      }];
 
-  const barData = [
-    { name: 'T2', new: 40, active: 24 },
-    { name: 'T3', new: 30, active: 13 },
-    { name: 'T4', new: 20, active: 98 },
-    { name: 'T5', new: 27, active: 39 },
-    { name: 'T6', new: 18, active: 48 },
-    { name: 'T7', new: 23, active: 38 },
-    { name: 'CN', new: 34, active: 43 },
-  ];
+  // Prepare Real Tools by Category data for BarChart
+  const barData = stats.toolsByCategory
+    .filter(item => item.count > 0)
+    .sort((a, b) => b.count - a.count);
 
   const pieData = [
     { name: 'Hoạt động', value: stats.activeTools || 1, color: '#22c55e' }, // Fallback to 1 to show a full circle if 0
@@ -148,12 +167,7 @@ export default function Dashboard() {
           {/* Line Chart */}
           <div style={{ ...cardStyle }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Hoạt động 30 ngày</h3>
-              <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.8rem' }}>
-                <span style={{ color: '#64748b', cursor: 'pointer' }}>7 ngày</span>
-                <span style={{ color: '#6366f1', background: '#eff2ff', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 600 }}>30 ngày</span>
-                <span style={{ color: '#64748b', cursor: 'pointer' }}>90 ngày</span>
-              </div>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Lượt truy cập trang</h3>
             </div>
             
             <div style={{ height: '200px', width: '100%' }}>
@@ -164,8 +178,7 @@ export default function Dashboard() {
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
                   <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
                   <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', top: -10 }} />
-                  <Line type="monotone" name="Lượt truy cập" dataKey="truyCap" stroke="#6366f1" strokeWidth={3} dot={false} />
-                  <Line type="monotone" name="API Calls" dataKey="api" stroke="#ec4899" strokeWidth={3} dot={false} />
+                  <Line type="monotone" name="Lượt truy cập" dataKey="truyCap" stroke="#6366f1" strokeWidth={3} dot={{ r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -178,17 +191,16 @@ export default function Dashboard() {
           
           {/* Bar Chart */}
           <div style={{ ...cardStyle }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '1.5rem' }}>Người dùng mới</h3>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '1.5rem' }}>Công cụ theo danh mục</h3>
             <div style={{ height: '240px', width: '100%' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} angle={-30} textAnchor="end" height={60} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
                   <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
                   <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', top: -10 }} />
-                  <Bar name="Đăng ký mới" dataKey="new" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={8} />
-                  <Bar name="Đang hoạt động" dataKey="active" fill="#f472b6" radius={[4, 4, 0, 0]} barSize={8} />
+                  <Bar name="Số lượng công cụ" dataKey="count" fill="#ec4899" radius={[4, 4, 0, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
