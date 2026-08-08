@@ -57,7 +57,7 @@ BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm ma
 }`;
 
     const interaction = await client.interactions.create({
-        model: "gemini-2.5-flash",
+        model: "gemini-1.5-flash",
         input: prompt
     });
 
