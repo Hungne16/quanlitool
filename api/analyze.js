@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { executeWithKeyRotation } from './utils/gemini.js';
 import { Crawl4AI } from 'crawl4ai';
 import * as cheerio from 'cheerio';
 
@@ -12,10 +12,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid URL provided' });
   }
 
-  const geminiApiKey = process.env.GEMINI_API_KEY || clientApiKey;
-  if (!geminiApiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY is not configured on server and not provided by client' });
-  }
+  // GEMINI_API_KEY checking is now handled inside executeWithKeyRotation
 
   try {
     console.log(`[analyze] Starting analysis for: ${url}`);
@@ -126,7 +123,6 @@ export default async function handler(req, res) {
 
     console.log(`[analyze] Analyzing with Gemini...`);
     
-    const aiClient = new GoogleGenAI({ apiKey: geminiApiKey });
     const sanitizedContent = combinedContent.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '');
 
     const categoryConstraint = categories && categories.length > 0 
@@ -163,12 +159,7 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
   "confidence": 90
 }`;
 
-    const interaction = await aiClient.interactions.create({
-      model: "gemini-3.5-flash",
-      input: prompt
-    });
-
-    const aiText = interaction.output_text;
+    const aiText = await executeWithKeyRotation(prompt, clientApiKey, "gemini-3.5-flash");
     
     let resultJson = {};
     try {

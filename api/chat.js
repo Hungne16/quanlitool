@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { executeWithKeyRotation } from './utils/gemini.js';
 
 // In-memory rate limiting map (resets on Vercel cold starts, but enough for basic spam prevention)
 const rateLimitMap = new Map();
@@ -28,10 +28,7 @@ export default async function handler(req, res) {
     rateLimitMap.clear();
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(401).json({ error: 'Server API key not configured' });
-  }
+  // API Key checking is now handled inside executeWithKeyRotation
 
   try {
     const { message, toolsContext } = req.body;
@@ -40,8 +37,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const client = new GoogleGenAI({ apiKey });
-    
+    // Client initialization removed since executeWithKeyRotation handles it
     const prompt = `Bạn là trợ lý AI quản lý công cụ. Dưới đây là danh sách các công cụ hiện có trong kho của người dùng:\n\n${toolsContext || 'Kho công cụ hiện trống.'}\n\nNgười dùng đang hỏi: "${message}".\n\nHãy gợi ý các công cụ phù hợp NHẤT từ danh sách trên để giúp họ giải quyết công việc. Nếu trong danh sách không có công cụ nào đáp ứng được, hãy gợi ý một công cụ nổi tiếng bên ngoài (để ID là rỗng).
 
 BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm markdown \`\`\`json):
@@ -56,16 +52,13 @@ BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm ma
   ]
 }`;
 
-    const interaction = await client.interactions.create({
-        model: "gemini-3.5-flash",
-        input: prompt
-    });
+    const aiText = await executeWithKeyRotation(prompt, null, "gemini-3.5-flash");
 
     // Nếu thành công thì mới tính là 1 lượt dùng
     userRecord.count += 1;
     rateLimitMap.set(ip, userRecord);
 
-    res.status(200).json({ reply: interaction.output_text });
+    res.status(200).json({ reply: aiText });
   } catch (error) {
     console.error('AI Error:', error);
     res.status(500).json({ error: error.message || 'Lỗi máy chủ khi gọi AI' });
