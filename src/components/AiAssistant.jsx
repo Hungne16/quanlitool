@@ -3,6 +3,8 @@ import { MessageSquare, X, Send, Bot, User, Loader2 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
 import { getTools } from '../utils/storage';
+import { db } from '../config/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 export default function AiAssistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,40 +42,9 @@ export default function AiAssistant() {
       const toolsContext = allTools.map(t => `- ID: ${t.id} | **${t.title}** (${t.category}): ${t.description}`).join('\n');
 
       let replyText = null;
+      const localApiKey = localStorage.getItem('gemini_api_key');
 
-      // 1. Try hitting the Secure Serverless Backend first
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMsg, toolsContext })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          replyText = data.reply;
-        } else if (response.status !== 401 && response.status !== 404) {
-          // It's a server error other than missing API key or not found endpoint
-          const errData = await response.json();
-          throw new Error(errData.error || `Server Error ${response.status}`);
-        }
-      } catch (backendError) {
-        console.warn('Backend call failed or not available, falling back to Local Storage key.', backendError);
-      }
-
-      // 2. Fallback to Local Client-side SDK (if backend didn't return a reply)
-      if (!replyText) {
-        const apiKey = localStorage.getItem('gemini_api_key');
-        if (!apiKey) {
-          setMessages(prev => [...prev, 
-            { role: 'bot', content: 'Vui lòng cung cấp **Gemini API Key** trong phần **Cài đặt hệ thống (⚙️)** (hoặc định cấu hình biến môi trường trên Server) để tôi có thể hoạt động nhé!' }
-          ]);
-          setIsLoading(false);
-          return;
-        }
-
-        const client = new GoogleGenAI({ apiKey });
-        const prompt = `Bạn là trợ lý AI quản lý công cụ. Dưới đây là danh sách các công cụ hiện có trong kho của người dùng:\n\n${toolsContext || 'Kho công cụ hiện trống.'}\n\nNgười dùng đang hỏi: "${userMsg}".\n\nHãy gợi ý các công cụ phù hợp NHẤT từ danh sách trên để giúp họ giải quyết công việc. Nếu trong danh sách không có công cụ nào đáp ứng được, hãy gợi ý một công cụ nổi tiếng bên ngoài (để ID là rỗng).
+      const prompt = `Bạn là trợ lý AI quản lý công cụ. Dưới đây là danh sách các công cụ hiện có trong kho của người dùng:\n\n${toolsContext || 'Kho công cụ hiện trống.'}\n\nNgười dùng đang hỏi: "${userMsg}".\n\nHãy gợi ý các công cụ phù hợp NHẤT từ danh sách trên để giúp họ giải quyết công việc. Nếu trong danh sách không có công cụ nào đáp ứng được, hãy gợi ý một công cụ nổi tiếng bên ngoài (để ID là rỗng).
 
 BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm markdown \`\`\`json):
 {
@@ -87,12 +58,31 @@ BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm ma
   ]
 }`;
 
+      if (localApiKey) {
+        // 1. Nếu người dùng có nhập API Key cá nhân, dùng trực tiếp luôn để khỏi tốn lượt Server
+        const client = new GoogleGenAI({ apiKey: localApiKey });
         const interaction = await client.interactions.create({
             model: "gemini-3.6-flash",
             input: prompt
         });
-
         replyText = interaction.output_text;
+      } else {
+        // 2. Nếu không có Key cá nhân, gọi Server Backend
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: userMsg, toolsContext })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          replyText = data.reply;
+        } else if (response.status === 429) {
+          throw new Error('LIMIT_EXCEEDED');
+        } else {
+          // Bất kì lỗi nào khác (VD Server chưa setup KEY)
+          throw new Error('NO_SERVER_KEY');
+        }
       }
 
       let parsedReply = { message: replyText, recommendations: [] };
@@ -110,9 +100,28 @@ BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm ma
         content: parsedReply.message, 
         recommendations: parsedReply.recommendations 
       }]);
+
+      // Log to analytics
+      try {
+        await addDoc(collection(db, 'ai_chat_logs'), {
+          query: userMsg,
+          toolsCount: parsedReply.recommendations ? parsedReply.recommendations.length : 0,
+          timestamp: new Date().toISOString()
+        });
+      } catch (logErr) {
+        console.error('Lỗi khi lưu log AI chat:', logErr);
+      }
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'bot', content: `Đã có lỗi xảy ra: **${error.message || error}**. \n\nBạn hãy kiểm tra lại API Key hoặc Log hệ thống để biết thêm chi tiết nhé!` }]);
+      let errMsg = '';
+      if (error.message === 'LIMIT_EXCEEDED') {
+        errMsg = 'Bạn đã dùng hết 10 lượt chat miễn phí hôm nay. Vui lòng thêm **Gemini API Key** cá nhân của bạn trong phần **Cài đặt hệ thống (⚙️)** để chat không giới hạn nhé!';
+      } else if (error.message === 'NO_SERVER_KEY') {
+        errMsg = 'Server hiện tại chưa được cấu hình API Key. Vui lòng cung cấp **Gemini API Key** trong phần **Cài đặt hệ thống (⚙️)** để tôi có thể hoạt động nhé!';
+      } else {
+        errMsg = `Đã có lỗi xảy ra: **${error.message || error}**. \n\nBạn hãy kiểm tra lại kết nối mạng hoặc API Key nhé!`;
+      }
+      setMessages(prev => [...prev, { role: 'bot', content: errMsg }]);
     } finally {
       setIsLoading(false);
     }

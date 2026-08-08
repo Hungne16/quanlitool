@@ -10,14 +10,16 @@ service cloud.firestore {
     
     // Function to get the user's role from the users collection (defaults to member)
     function getUserRole() {
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return 'role' in userData ? userData.role : 'member';
+      let userRef = /databases/$(database)/documents/users/$(request.auth.uid);
+      let userDoc = exists(userRef) ? get(userRef) : null;
+      return userDoc == null || !('role' in userDoc.data) ? 'member' : userDoc.data.role;
     }
     
     // Function to check if user is active (defaults to active if missing)
     function isActive() {
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return !('status' in userData) || userData.status == 'active';
+      let userRef = /databases/$(database)/documents/users/$(request.auth.uid);
+      let userDoc = exists(userRef) ? get(userRef) : null;
+      return userDoc == null || !('status' in userDoc.data) || userDoc.data.status == 'active';
     }
 
     // Function to check admin privileges
@@ -62,7 +64,10 @@ service cloud.firestore {
       
       // Only admins can update or delete tools completely
       // Regular users can ONLY update the ratings and comments field
-      allow update: if isAdmin() || (isAuthenticated() && isActive() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ratings', 'comments']));
+      // ANYONE (even guests) can update the clicks field
+      allow update: if isAdmin() 
+        || (isAuthenticated() && isActive() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ratings', 'comments', 'clicks']))
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clicks']));
       
       allow delete: if isAdmin();
     }
@@ -72,6 +77,12 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow update, delete: if isAdmin();
       allow create: if isAuthenticated() && isActive();
+    }
+
+    // --- AI CHAT LOGS COLLECTION ---
+    match /ai_chat_logs/{logId} {
+      allow create: if true; // anyone can chat
+      allow read, update, delete: if isAdmin();
     }
 
     // --- SETTINGS COLLECTION ---

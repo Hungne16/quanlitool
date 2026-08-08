@@ -12,6 +12,7 @@ import LiveActivityToast from '../../components/LiveActivityToast';
 import ComparisonTray from '../../components/ComparisonTray';
 import ComparisonModal from '../../components/ComparisonModal';
 import TechStackSection from '../../components/TechStackSection';
+import { Helmet } from 'react-helmet-async';
 import { getTools, getCategories, saveTool, deleteTool, toggleFavorite, initStorage } from '../../utils/storage';
 import { Search, Bell, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -25,6 +26,7 @@ export default function Home() {
   const [tools, setTools] = useState([]);
   const [categories, setCategories] = useState([]);
   const [currentCategory, setCurrentCategory] = useState('Tất cả');
+  const [pricingFilter, setPricingFilter] = useState('Tất cả');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -57,7 +59,8 @@ export default function Home() {
       const toolWithUser = {
         ...newTool,
         submittedBy: user?.uid || 'guest',
-        tags: newTool.tags || []
+        tags: newTool.tags || [],
+        status: isAdmin ? 'approved' : 'pending'
       };
       
       const savedTool = await saveTool(toolWithUser);
@@ -65,7 +68,11 @@ export default function Home() {
       setIsAddModalOpen(false);
       
       setTimeout(() => {
-        alert('Thêm công cụ thành công!');
+        if (isAdmin) {
+          alert('Thêm công cụ thành công!');
+        } else {
+          alert('Gửi công cụ thành công! Công cụ của bạn đang trong trạng thái chờ Admin duyệt.');
+        }
       }, 300);
     } catch (error) {
       console.error('Lỗi khi thêm công cụ:', error);
@@ -112,6 +119,7 @@ export default function Home() {
 
   useEffect(() => {
     setSelectedTags([]);
+    setPricingFilter('Tất cả');
   }, [currentCategory]);
 
   const categoryTools = useMemo(() => {
@@ -147,7 +155,12 @@ export default function Home() {
         matchesTags = tool.tags && tool.tags.some(tag => selectedTags.includes(tag));
       }
       
-      return matchesSearch && matchesTags;
+      let matchesPricing = true;
+      if (pricingFilter !== 'Tất cả') {
+        matchesPricing = tool.pricing === pricingFilter;
+      }
+      
+      return matchesSearch && matchesTags && matchesPricing;
     }).map(tool => ({
       ...tool,
       isFavorite: profile?.favorites?.includes(tool.id) || false
@@ -156,6 +169,13 @@ export default function Home() {
 
   return (
     <div className="app-container" style={{ position: 'relative' }}>
+      <Helmet>
+        <title>{currentCategory === 'Tất cả' ? 'Kho Công Cụ AI - Tối Ưu Hóa Hiệu Suất' : `${currentCategory} - Kho Công Cụ AI`}</title>
+        <meta name="description" content={`Khám phá hàng trăm công cụ AI và tiện ích thông minh trong danh mục ${currentCategory}. Tăng hiệu suất làm việc với bộ sưu tập công cụ chọn lọc.`} />
+        <meta property="og:title" content={currentCategory === 'Tất cả' ? 'Kho Công Cụ AI - Tối Ưu Hóa Hiệu Suất' : `${currentCategory} - Kho Công Cụ AI`} />
+        <meta property="og:description" content={`Khám phá hàng trăm công cụ AI và tiện ích thông minh trong danh mục ${currentCategory}. Tăng hiệu suất làm việc với bộ sưu tập công cụ chọn lọc.`} />
+      </Helmet>
+
       <Sidebar 
         categories={categories}
         currentCategory={currentCategory} 
@@ -338,8 +358,32 @@ export default function Home() {
               <h1 className="page-title">{currentCategory}</h1>
               <p className="page-subtitle">Quản lý và truy cập nhanh {filteredTools.length} công cụ.</p>
               
-              {availableTags.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                {/* Lọc theo giá */}
+                <select 
+                  value={pricingFilter}
+                  onChange={(e) => setPricingFilter(e.target.value)}
+                  style={{
+                    padding: '0.4rem 1rem',
+                    borderRadius: '20px',
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="Tất cả">Tất cả các mức giá</option>
+                  <option value="Miễn phí">Miễn phí (Free)</option>
+                  <option value="Mã nguồn mở">Mã nguồn mở (Open Source)</option>
+                  <option value="Freemium">Freemium</option>
+                  <option value="Trả phí">Trả phí (Paid)</option>
+                </select>
+
+                {availableTags.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {availableTags.map(tag => (
                     <button
                       key={tag}
@@ -363,8 +407,9 @@ export default function Home() {
                       #{tag}
                     </button>
                   ))}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
           </header>
 

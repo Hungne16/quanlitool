@@ -113,9 +113,10 @@ export default function Tools() {
       await updateDoc(doc(db, 'tools', id), data);
       setEditingTool(null);
       fetchTools();
+      alert('Cập nhật thành công!');
     } catch (err) {
       console.error(err);
-      alert('Lỗi lưu thay đổi. Có thể do Firebase Rules chặn quyền ghi.');
+      alert('Lỗi lưu thay đổi: ' + err.message);
     }
   };
 
@@ -286,6 +287,7 @@ export default function Tools() {
             <tr style={{ backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
               <th style={{ padding: '1rem' }}>Tên công cụ</th>
               <th style={{ padding: '1rem' }}>Danh mục</th>
+              <th style={{ padding: '1rem' }}>Định giá</th>
               <th style={{ padding: '1rem' }}>Người gửi</th>
               <th style={{ padding: '1rem' }}>Đánh giá</th>
               <th style={{ padding: '1rem' }}>Trạng thái</th>
@@ -313,6 +315,18 @@ export default function Tools() {
                     </div>
                   </td>
                   <td style={{ padding: '1rem' }}>{t.category}</td>
+                  <td style={{ padding: '1rem' }}>
+                    <span style={{
+                      padding: '0.2rem 0.6rem',
+                      borderRadius: '20px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      background: 'var(--bg-secondary)',
+                      color: 'var(--text-secondary)'
+                    }}>
+                      {t.pricing || 'Miễn phí'}
+                    </span>
+                  </td>
                   <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{t.submittedBy === 'guest' || !t.submittedBy ? 'Hệ thống/Guest' : 'Member'}</td>
                   <td style={{ padding: '1rem', fontSize: '0.9rem' }}>
                     <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>★ {rating.avg}</span> 
@@ -338,10 +352,10 @@ export default function Tools() {
                         </button>
                       </>
                     )}
-                    <button onClick={() => setEditingTool(t)} className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '6px' }} title="Sửa">
+                    <button onClick={() => setEditingTool(t)} style={{ padding: '0.4rem', borderRadius: '6px', color: 'var(--accent-color)', background: 'rgba(99, 102, 241, 0.1)', border: 'none', cursor: 'pointer' }} title="Sửa">
                       <Edit size={16} />
                     </button>
-                    <button onClick={() => handleDelete(t.id)} className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '6px', color: '#ef4444' }} title="Xóa">
+                    <button onClick={() => handleDelete(t.id)} style={{ padding: '0.4rem', borderRadius: '6px', color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', border: 'none', cursor: 'pointer' }} title="Xóa">
                       <Trash2 size={16} />
                     </button>
                   </td>

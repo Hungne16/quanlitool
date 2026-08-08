@@ -5,7 +5,8 @@ import { getCategories } from '../../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, PenTool, Folder, TrendingUp, 
-  Plus, UserPlus, FolderPlus, CheckCircle
+  Plus, UserPlus, FolderPlus, CheckCircle,
+  MessageSquare, MousePointerClick, Clock
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -19,8 +20,9 @@ export default function Dashboard() {
     tools: 0,
     categories: 0,
     activeTools: 0,
-    maintenanceTools: 0,
-    lockedTools: 0
+    lockedTools: 0,
+    topTools: [],
+    recentChats: []
   });
 
   useEffect(() => {
@@ -34,12 +36,26 @@ export default function Dashboard() {
         let maintenance = 0;
         let locked = 0;
 
+        const toolsList = [];
         toolsSnap.forEach(doc => {
           const data = doc.data();
+          toolsList.push({ id: doc.id, ...data });
           if (data.status === 'Bảo trì') maintenance++;
           else if (data.status === 'Tạm khóa') locked++;
           else active++;
         });
+
+        // Get Top Tools by Clicks
+        const topTools = [...toolsList].sort((a, b) => (b.clicks || 0) - (a.clicks || 0)).slice(0, 5);
+
+        // Fetch AI Chat Logs
+        const chatsSnap = await getDocs(collection(db, 'ai_chat_logs'));
+        const chatsList = [];
+        chatsSnap.forEach(doc => {
+          chatsList.push({ id: doc.id, ...doc.data() });
+        });
+        chatsList.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const recentChats = chatsList.slice(0, 5);
 
         setStats({
           users: usersSnap.size || 0,
@@ -47,7 +63,9 @@ export default function Dashboard() {
           categories: categoriesData.length || 0,
           activeTools: active,
           maintenanceTools: maintenance,
-          lockedTools: locked
+          lockedTools: locked,
+          topTools,
+          recentChats
         });
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -227,6 +245,62 @@ export default function Dashboard() {
             </div>
           </div>
 
+        </div>
+
+        {/* Row 3 - New Analytics */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+          {/* Top Clicked Tools */}
+          <div style={{ ...cardStyle }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <MousePointerClick size={18} color="#6366f1" /> Top Công Cụ Nổi Bật
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {stats.topTools.map((tool, idx) => (
+                <div key={tool.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: idx < stats.topTools.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#eff2ff', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.95rem' }}>{tool.title || tool.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{tool.category}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#10b981', fontWeight: 600, fontSize: '0.9rem' }}>
+                    {tool.clicks || 0} <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 400 }}>clicks</span>
+                  </div>
+                </div>
+              ))}
+              {stats.topTools.length === 0 && (
+                <div style={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center', padding: '1rem 0' }}>Chưa có dữ liệu clicks</div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent AI Searches */}
+          <div style={{ ...cardStyle }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <MessageSquare size={18} color="#ec4899" /> Nhu cầu tìm kiếm gần đây
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {stats.recentChats.map((chat) => (
+                <div key={chat.id} style={{ padding: '0.75rem', background: '#f8fafc', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>"{chat.query}"</span>
+                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <Clock size={12} /> {new Date(chat.timestamp).toLocaleDateString('vi-VN')}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                    Phản hồi: <span style={{ color: '#ec4899' }}>{chat.toolsCount || 0} công cụ được gợi ý</span>
+                  </div>
+                </div>
+              ))}
+              {stats.recentChats.length === 0 && (
+                <div style={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center', padding: '1rem 0' }}>Chưa có dữ liệu chat</div>
+              )}
+            </div>
+          </div>
         </div>
 
       </div>

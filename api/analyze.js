@@ -151,7 +151,7 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
   "fullDescription": "Mô tả chi tiết hơn",
   "category": "${categoryConstraint}",
   "tags": ${tagsConstraint},
-  "pricing": "Mô hình giá (Free, Freemium, Paid, Contact Sales, ...)",
+  "pricing": "CHỈ CHỌN 1 TRONG CÁC GIÁ TRỊ: Miễn phí, Mã nguồn mở, Freemium, Trả phí",
   "platforms": ["Web", "Windows", "macOS", "iOS", "Android"],
   "company": "Tên công ty/Tổ chức phát triển",
   "website": "${url}",

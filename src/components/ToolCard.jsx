@@ -4,6 +4,8 @@ import { motion, useMotionValue, useMotionTemplate } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { rateTool, reportTool } from '../utils/storage';
 import CommentsModal from './CommentsModal';
+import { db } from '../config/firebase';
+import { doc, updateDoc, increment } from 'firebase/firestore';
 
 const gradients = [
   'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
@@ -102,6 +104,19 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, onCompare, 
     return { avg: (sum / scores.length).toFixed(1), count: scores.length };
   };
 
+  const handleVisit = async (e) => {
+    // We do not prevent default, we let the link open in a new tab.
+    // We just want to increment the click count in the background.
+    if (!tool.id || tool.id === 'preview') return;
+    try {
+      await updateDoc(doc(db, 'tools', tool.id), {
+        clicks: increment(1)
+      });
+    } catch (err) {
+      console.error("Lỗi khi đếm lượt truy cập:", err);
+    }
+  };
+
   const ratingInfo = calculateRating();
   const userRating = user && tool.ratings ? tool.ratings[user.uid] : 0;
 
@@ -119,6 +134,17 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, onCompare, 
   const headerGradient = getGradient(tool.title || tool.name);
 
   const [isHovered, setIsHovered] = useState(false);
+  
+  const getPricingColor = (pricing) => {
+    switch (pricing) {
+      case 'Miễn phí': return { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981' };
+      case 'Mã nguồn mở': return { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' };
+      case 'Freemium': return { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' };
+      case 'Trả phí': return { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' };
+      default: return null;
+    }
+  };
+  const pricingStyle = getPricingColor(tool.pricing);
 
   return (
     <motion.div 
@@ -218,7 +244,9 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, onCompare, 
                 <Share2 size={16} />
               </button>
 
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.8, rotate: -15 }}
                 onClick={(e) => { 
                   e.stopPropagation(); 
                   onToggleFavorite(tool); 
@@ -227,13 +255,13 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, onCompare, 
                   width: '32px', height: '32px', borderRadius: '50%',
                   background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                  border: 'none', cursor: 'pointer', transition: 'background 0.2s',
                   color: tool.isFavorite ? '#ef4444' : '#fff'
                 }}
                 title={tool.isFavorite ? "Bỏ yêu thích" : "Yêu thích"}
               >
                 <Heart size={16} fill={tool.isFavorite ? '#ef4444' : 'none'} />
-              </button>
+              </motion.button>
               
               {onCompare && (
                 <button 
@@ -308,17 +336,32 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, onCompare, 
             {/* Title and Badge */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{tool.title || tool.name || 'Không có tên'}</h3>
-              <span style={{
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                padding: '0.2rem 0.6rem',
-                background: 'rgba(100, 84, 168, 0.1)',
-                color: '#6454a8',
-                borderRadius: '20px',
-                whiteSpace: 'nowrap'
-              }}>
-                {tool.category}
-              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'flex-end' }}>
+                <span style={{
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  padding: '0.2rem 0.6rem',
+                  background: 'rgba(100, 84, 168, 0.1)',
+                  color: '#6454a8',
+                  borderRadius: '20px',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {tool.category}
+                </span>
+                {pricingStyle && (
+                  <span style={{
+                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    padding: '0.15rem 0.5rem',
+                    background: pricingStyle.bg,
+                    color: pricingStyle.color,
+                    borderRadius: '4px',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {tool.pricing}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Rating Stars */}
@@ -411,6 +454,7 @@ export default function ToolCard({ tool, onDelete, onToggleFavorite, onCompare, 
                 href={tool.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
+                onClick={handleVisit}
                 className="tool-action-btn"
                 style={{
                   display: 'flex',

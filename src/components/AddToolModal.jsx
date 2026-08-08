@@ -11,6 +11,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     description: '',
     detailedDescription: '',
     category: '',
+    pricing: 'Miễn phí',
     imageUrl: '',
     tags: []
   });
@@ -19,9 +20,21 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
   const [availableTags, setAvailableTags] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analyzeError, setAnalyzeError] = useState('');
+
+  const defaultFormState = {
+    title: '',
+    url: '',
+    description: '',
+    detailedDescription: '',
+    category: '',
+    pricing: 'Miễn phí',
+    imageUrl: '',
+    tags: []
+  };
+
   useEffect(() => {
     if (initialData) {
-      setFormData({ ...initialData, tags: initialData.tags || [] });
+      setFormData({ ...defaultFormState, ...initialData, tags: initialData.tags || [] });
     } else if (categories && categories.length > 0) {
       setFormData(prev => ({ ...prev, category: categories[0] }));
     }
@@ -63,7 +76,10 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.url) return;
+    if (!formData.title || !formData.url) {
+      alert("Vui lòng điền đầy đủ Tên công cụ và Đường dẫn (URL)!");
+      return;
+    }
     
     // Ensure URL has http/https
     let finalUrl = formData.url;
@@ -72,7 +88,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     }
 
     await onSave({ ...formData, url: finalUrl });
-    setFormData({ title: '', url: '', description: '', detailedDescription: '', category: categories[0] || '', imageUrl: '', tags: [] });
+    setFormData({ title: '', url: '', description: '', detailedDescription: '', category: categories[0] || '', pricing: 'Miễn phí', imageUrl: '', tags: [] });
     setTagInput('');
     onClose();
   };
@@ -113,6 +129,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
         description: data.shortDescription || prev.description,
         detailedDescription: data.fullDescription || prev.detailedDescription,
         category: data.category || prev.category,
+        pricing: data.pricing && ['Miễn phí', 'Mã nguồn mở', 'Freemium', 'Trả phí'].includes(data.pricing) ? data.pricing : prev.pricing,
         tags: data.tags && data.tags.length > 0 ? data.tags : prev.tags,
         imageUrl: data.logo || prev.imageUrl
       }));
@@ -132,6 +149,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
     description: formData.description || 'Mô tả ngắn gọn về công cụ của bạn sẽ hiển thị ở đây...',
     detailedDescription: formData.detailedDescription,
     category: formData.category || 'Category',
+    pricing: formData.pricing || 'Miễn phí',
     imageUrl: formData.imageUrl,
     tags: formData.tags
   };
@@ -264,10 +282,22 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
 
                 <div className="input-group" style={{ marginBottom: 0, flex: 1 }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
-                    <ImageIcon size={16} color="var(--accent-color)" /> Logo URL
+                    <Tag size={16} color="var(--accent-color)" /> Định giá
                   </label>
-                  <input type="text" name="imageUrl" className="input-control" value={formData.imageUrl} onChange={handleChange} placeholder="Tuỳ chọn..." style={{ padding: '0.75rem 1rem', borderRadius: '12px' }} />
+                  <select name="pricing" className="input-control" value={formData.pricing} onChange={handleChange} style={{ padding: '0.75rem 1rem', borderRadius: '12px' }}>
+                    <option value="Miễn phí">Miễn phí (Free)</option>
+                    <option value="Mã nguồn mở">Mã nguồn mở (Open Source)</option>
+                    <option value="Freemium">Freemium (Dùng thử/Giới hạn)</option>
+                    <option value="Trả phí">Trả phí (Paid)</option>
+                  </select>
                 </div>
+              </div>
+
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+                  <ImageIcon size={16} color="var(--accent-color)" /> Logo URL
+                </label>
+                <input type="text" name="imageUrl" className="input-control" value={formData.imageUrl} onChange={handleChange} placeholder="Tuỳ chọn..." style={{ padding: '0.75rem 1rem', borderRadius: '12px' }} />
               </div>
 
               <div className="input-group" style={{ marginBottom: 0 }}>
@@ -285,7 +315,7 @@ export default function AddToolModal({ categories, isOpen, onClose, onSave, init
                       padding: '0.25rem 0.5rem', borderRadius: '16px', fontSize: '0.8rem' 
                     }}>
                       {tag}
-                      <X size={14} style={{ cursor: 'pointer' }} onClick={() => handleRemoveTag(tag)} />
+                      <X size={14} style={{ cursor: 'pointer' }} onClick={() => removeTag(tag)} />
                     </span>
                   ))}
                   <input 
