@@ -33,9 +33,12 @@ BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm ma
   "verdict": "Lời bình luận cuối cùng giải thích tại sao công cụ chiến thắng lại tốt hơn (khoảng 2-3 câu)."
 }`;
 
-    const aiText = await executeWithKeyRotation(prompt, null, "gemini-1.5-flash");
+    const aiText = await executeWithKeyRotation(prompt, null, "gemini-3.6-flash");
     
     let resultJson;
+    if (!aiText) {
+      throw new Error('Trọng tài AI không đưa ra được phán quyết (phản hồi rỗng).');
+    }
     try {
       resultJson = JSON.parse(aiText.trim());
     } catch (e) {
