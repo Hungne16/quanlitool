@@ -1,17 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Sword, Zap, Shield, Crown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Shield, Crown, Zap } from 'lucide-react';
 
-const FloatingMech = ({ tool, isLeft, state }) => {
+const FloatingMech = ({ tool, isLeft, state, action }) => {
   const initialChar = (tool.title || tool.name || '?').charAt(0);
   const color = isLeft ? '#3b82f6' : '#ef4444'; // Blue vs Red
   
-  // Animation states
-  const isFighting = state === 'fighting';
+  // Terminal states
   const isVictory = state === 'victory';
   const isDefeat = state === 'defeat';
   const isFinishingWinner = state === 'finishing_winner';
   const isFinishingLoser = state === 'finishing_loser';
+
+  // Combat actions
+  const isClash = action === 'clash';
+  const isLaserPhase = action === 'laser';
+  const isSlashPhase = action === 'slash';
+
+  // Determine animations based on role in the action
+  let xAnim = 0;
+  let yAnim = 0;
+  let rotateAnim = 0;
+  let scaleAnim = 1;
+  let opacityAnim = 1;
+
+  if (isFinishingWinner) {
+    xAnim = isLeft ? [0, -40, 300] : [0, 40, -300];
+    yAnim = [0, -20, 0];
+    rotateAnim = isLeft ? [0, -15, 45] : [0, 15, -45];
+    scaleAnim = 1.3;
+  } else if (isFinishingLoser) {
+    xAnim = isLeft ? [0, 20, -150] : [0, -20, 150];
+    yAnim = [0, -20, 80];
+    rotateAnim = isLeft ? [0, 45, -720] : [0, -45, 720];
+    scaleAnim = [1, 1.5, 0];
+    opacityAnim = [1, 1, 0];
+  } else if (isVictory) {
+    xAnim = isLeft ? 220 : -220; // Center position
+    scaleAnim = 1.1;
+  } else if (isDefeat) {
+    xAnim = isLeft ? -100 : 100;
+    yAnim = 50;
+    rotateAnim = isLeft ? -90 : 90;
+    scaleAnim = 0;
+    opacityAnim = 0;
+  } else if (isClash) {
+    // Clash in the middle
+    xAnim = isLeft ? [0, 150, 0] : [0, -150, 0];
+    rotateAnim = isLeft ? [0, 15, 0] : [0, -15, 0];
+  } else if (isLaserPhase) {
+    if (isLeft) {
+      // P1 (Left) shoots laser
+      rotateAnim = [0, 15, 0]; // Recoil
+      xAnim = [0, -20, 0];
+    } else {
+      // P2 (Right) gets hit/deflects
+      xAnim = [0, 30, 0];
+      rotateAnim = [0, -5, 0];
+    }
+  } else if (isSlashPhase) {
+    if (!isLeft) {
+      // P2 (Right) slashes
+      rotateAnim = [0, -45, 45, 0];
+      xAnim = [0, -30, 0];
+    } else {
+      // P1 (Left) takes damage
+      rotateAnim = [0, -30, 30, 0];
+      xAnim = [0, -20, 0];
+    }
+  } else {
+    // Idle wobbling
+    yAnim = [0, -5, 0, 5, 0];
+    rotateAnim = [-2, 2, -2];
+  }
 
   return (
     <motion.div 
@@ -25,57 +86,21 @@ const FloatingMech = ({ tool, isLeft, state }) => {
         zIndex: isVictory ? 20 : 10,
         filter: isDefeat ? 'grayscale(100%)' : `drop-shadow(0 0 15px ${color}66)`
       }}
-      animate={
-        isFighting ? {
-          x: isLeft ? [0, 100, -30, 10, -5, 0] : [0, -100, 30, -10, 5, 0],
-          y: [0, -20, 10, -5, 5, 0],
-          rotate: isLeft ? [0, 15, -5, 5, -2, 0] : [0, -15, 5, -5, 2, 0],
-          opacity: 1,
-          scale: 1
-        } : isFinishingWinner ? {
-          x: isLeft ? [0, -40, 300] : [0, 40, -300], // Dash past enemy
-          y: [0, -20, 0],
-          rotate: isLeft ? [0, -15, 45] : [0, 15, -45], // Lean into attack
-          scale: 1.3,
-          opacity: 1
-        } : isFinishingLoser ? {
-          x: isLeft ? [0, 20, -150] : [0, -20, 150], // Knocked back harder
-          y: [0, -20, 80],
-          rotate: isLeft ? [0, 45, -720] : [0, -45, 720], // Violent spin
-          scale: [1, 1.5, 0], // Swell then explode
-          opacity: [1, 1, 0]
-        } : isVictory ? {
-          x: isLeft ? 220 : -220, // Move closer to exact center
-          y: 0, // Keep lower to avoid clipping the crown
-          rotate: 0,
-          scale: 1.1,
-          opacity: 1
-        } : { // defeat
-          x: isLeft ? -100 : 100,
-          y: 50,
-          rotate: isLeft ? -90 : 90,
-          opacity: 0,
-          scale: 0
-        }
-      }
+      animate={{
+        x: xAnim,
+        y: yAnim,
+        rotate: rotateAnim,
+        scale: scaleAnim,
+        opacity: opacityAnim
+      }}
       transition={
-        isFighting ? {
-          duration: 2,
-          repeat: Infinity,
-          ease: "easeInOut",
-          times: [0, 0.4, 0.6, 1]
-        } : isFinishingWinner || isFinishingLoser ? {
-          duration: 1.5,
-          times: [0, 0.4, 1],
-          ease: "easeInOut"
-        } : {
-          duration: 1,
-          ease: "easeInOut"
-        }
+        action === 'idle' && !isFinishingLoser && !isFinishingWinner && !isVictory && !isDefeat
+          ? { duration: 2, repeat: Infinity, ease: "easeInOut" }
+          : { duration: 1, ease: "easeInOut" }
       }
     >
       {/* The Body (Logo) */}
-      <motion.div 
+      <div
         style={{
           width: '72px',
           height: '72px',
@@ -90,15 +115,13 @@ const FloatingMech = ({ tool, isLeft, state }) => {
           zIndex: 5,
           position: 'relative'
         }}
-        animate={isFighting ? { y: [0, -5, 0, 5, 0], rotate: [-2, 2, -2] } : { y: 0, rotate: 0 }}
-        transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut" }}
       >
         {tool.imageUrl ? (
           <img src={tool.imageUrl} alt={tool.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <span style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>{initialChar}</span>
         )}
-      </motion.div>
+      </div>
 
       {/* Explosion Effect when losing */}
       {isFinishingLoser && (
@@ -118,6 +141,27 @@ const FloatingMech = ({ tool, isLeft, state }) => {
           initial={{ scale: 0, opacity: 1 }}
           animate={{ scale: [0, 2, 3], opacity: [1, 1, 0] }}
           transition={{ duration: 0.8, delay: 0.2 }}
+        />
+      )}
+
+      {/* Sparks when hit */}
+      {((isLaserPhase && !isLeft) || (isSlashPhase && isLeft)) && (
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '100px',
+            height: '100px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, #fff 0%, #fbbf24 30%, transparent 70%)',
+            mixBlendMode: 'screen',
+            zIndex: 15
+          }}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
+          transition={{ duration: 0.5, delay: 0.3 }}
         />
       )}
 
@@ -145,7 +189,7 @@ const FloatingMech = ({ tool, isLeft, state }) => {
         <Crown size={48} fill="#fbbf24" strokeWidth={1.5} />
       </motion.div>
 
-      {/* Floating Hand & Sword (Only if not defeated) */}
+      {/* Floating Sword / Gun */}
       <motion.div 
         style={{
           position: 'absolute',
@@ -163,36 +207,32 @@ const FloatingMech = ({ tool, isLeft, state }) => {
           transformOrigin: isLeft ? 'left center' : 'right center'
         }}
         animate={
-          isFighting ? {
-            rotate: isLeft ? [0, -90, 60, 0] : [0, 90, -60, 0],
-            x: isLeft ? [0, 20, -10, 0] : [0, -20, 10, 0],
-            opacity: 1
-          } : isFinishingWinner ? {
-            rotate: isLeft ? [0, -90, 90] : [0, 90, -90], // Big swing
+          isFinishingWinner ? {
+            rotate: isLeft ? [0, -90, 90] : [0, 90, -90],
             x: isLeft ? [0, -20, 50] : [0, 20, -50],
             scale: [1, 1.5, 2],
             opacity: 1
           } : isFinishingLoser ? {
             y: 50,
-            rotate: isLeft ? -180 : 180,
             opacity: 0
           } : isVictory ? {
-            rotate: isLeft ? -30 : 30, // Victory pose (flatter angle)
-            x: 0,
-            y: 0, // Lowered
-            opacity: 1
-          } : { // defeat
-            y: 100, // Drop sword
-            opacity: 0
+            rotate: isLeft ? -30 : 30,
+            x: 0, y: 0, opacity: 1
+          } : isDefeat ? {
+            y: 100, opacity: 0
+          } : isClash ? {
+            rotate: isLeft ? [0, 60, 0] : [0, -60, 0]
+          } : isSlashPhase && !isLeft ? {
+            rotate: [0, 120, -30, 0], // Big swing
+            scale: [1, 1.5, 1]
+          } : isLaserPhase && isLeft ? {
+            scale: [1, 1.3, 1] // Gun recoil
+          } : {
+            rotate: isLeft ? [0, -10, 0] : [0, 10, 0]
           }
         }
-        transition={
-          isFighting ? { duration: 2, repeat: Infinity, ease: "easeInOut", times: [0, 0.3, 0.5, 1] } 
-          : isFinishingWinner ? { duration: 1.5, times: [0, 0.4, 1], ease: "anticipate" }
-          : { duration: 0.5 }
-        }
+        transition={{ duration: 1 }}
       >
-        {/* Energy Sword */}
         <div style={{ 
           position: 'absolute',
           top: '50%',
@@ -208,39 +248,30 @@ const FloatingMech = ({ tool, isLeft, state }) => {
         }} />
       </motion.div>
 
-      {/* Floating Shield (New) */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '30%',
-          [isLeft ? 'right' : 'left']: '50px',
-          width: '30px',
-          height: '40px',
-          borderRadius: '10px',
-          background: 'rgba(255,255,255,0.2)',
-          border: `2px solid ${color}`,
-          boxShadow: `0 0 15px ${color}, inset 0 0 10px ${color}`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 7,
-          backdropFilter: 'blur(4px)'
-        }}
-        animate={
-          isFighting ? {
-            x: isLeft ? [0, -10, 5, 0] : [0, 10, -5, 0],
-            opacity: 0.8
-          } : isFinishingWinner || isVictory ? {
-            opacity: 0 // Winner hides shield for attack/pose
-          } : isFinishingLoser || isDefeat ? {
-            y: 100, // Drop shield
-            opacity: 0
-          } : {}
-        }
-        transition={isFighting ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : { duration: 0.5 }}
-      >
-        <Shield size={20} color="#fff" strokeWidth={2} />
-      </motion.div>
+      {/* Floating Deflect Shield for P2 during Laser */}
+      <AnimatePresence>
+        {isLaserPhase && !isLeft && (
+          <motion.div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '-20px',
+              width: '6px',
+              height: '80px',
+              borderRadius: '3px',
+              background: '#fff',
+              border: `2px solid ${color}`,
+              boxShadow: `0 0 20px ${color}, inset 0 0 10px ${color}`,
+              zIndex: 7,
+              transform: 'translateY(-50%)'
+            }}
+            initial={{ opacity: 0, scaleY: 0 }}
+            animate={{ opacity: 1, scaleY: 1 }}
+            exit={{ opacity: 0, scaleY: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
+      </AnimatePresence>
       
       {/* Jetpack thruster effect */}
       <motion.div
@@ -257,16 +288,11 @@ const FloatingMech = ({ tool, isLeft, state }) => {
           zIndex: 2
         }}
         animate={
-          isFighting ? {
-            scale: [1, 1.5, 1],
-            opacity: [0.5, 1, 0.5]
-          } : isVictory ? {
-            scale: 2, opacity: 1 // Huge blast
-          } : { // defeat
-            opacity: 0 // Thruster dies
-          }
+          action !== 'idle' ? { scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] } 
+          : isVictory ? { scale: 2, opacity: 1 }
+          : isDefeat ? { opacity: 0 } : {}
         }
-        transition={isFighting ? { duration: 0.2, repeat: Infinity } : { duration: 0.5 }}
+        transition={{ duration: 0.2, repeat: Infinity }}
       />
     </motion.div>
   );
@@ -274,34 +300,46 @@ const FloatingMech = ({ tool, isLeft, state }) => {
 
 export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
   const [phase, setPhase] = useState('fighting');
+  const [combatAction, setCombatAction] = useState('idle');
 
+  // Master Orchestration Loop
   useEffect(() => {
-    if (isEvaluating || winnerId === null || winnerId === undefined) {
+    let interval;
+    if (isEvaluating) {
       setPhase('fighting');
+      setCombatAction('clash'); // Start with a clash
+      
+      const actions = ['laser', 'slash', 'clash'];
+      let idx = 0;
+      
+      interval = setInterval(() => {
+        setCombatAction(actions[idx]);
+        idx = (idx + 1) % actions.length;
+      }, 1500); // Trigger a new action every 1.5s
     } else if (winnerId === 'draw') {
+      clearInterval(interval);
       setPhase('draw');
-    } else {
-      // Winner is decided -> trigger finishing move
+      setCombatAction('idle');
+    } else if (winnerId) {
+      clearInterval(interval);
       setPhase('finishing');
+      setCombatAction('idle');
+      
       const timer = setTimeout(() => {
         setPhase('done');
-      }, 1500); // Wait 1.5s for the finishing move animation
+      }, 1500);
       return () => clearTimeout(timer);
     }
+    
+    return () => clearInterval(interval);
   }, [isEvaluating, winnerId]);
 
   if (!tool1 || !tool2) return null;
 
   const getMechState = (mechId) => {
     if (phase === 'fighting' || phase === 'draw') return 'fighting';
-    
-    if (phase === 'finishing') {
-      return winnerId === mechId ? 'finishing_winner' : 'finishing_loser';
-    }
-    
-    if (phase === 'done') {
-      return winnerId === mechId ? 'victory' : 'defeat';
-    }
+    if (phase === 'finishing') return winnerId === mechId ? 'finishing_winner' : 'finishing_loser';
+    if (phase === 'done') return winnerId === mechId ? 'victory' : 'defeat';
     return 'fighting';
   };
 
@@ -314,10 +352,8 @@ export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
     return '0%';
   };
 
-  const isCombatActive = phase === 'fighting';
-
   return (
-    <motion.div 
+    <div 
       style={{
         width: '100%',
         height: '320px',
@@ -335,23 +371,12 @@ export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
         padding: '0 15%',
         boxShadow: '0 20px 40px rgba(0,0,0,0.4), inset 0 0 60px rgba(0,0,0,0.5)'
       }}
-      animate={
-        isCombatActive ? {
-          x: [0, 0, -5, 5, -2, 2, 0, 0],
-          y: [0, 0, 3, -3, 2, -2, 0, 0]
-        } : { x: 0, y: 0 }
-      }
-      transition={isCombatActive ? {
-        duration: 2,
-        repeat: Infinity,
-        times: [0, 0.38, 0.4, 0.42, 0.45, 0.48, 0.5, 1]
-      } : {}}
     >
       {/* VS Neon Text */}
       <div style={{ 
         position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)', 
         zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center',
-        opacity: isCombatActive ? 1 : 0.2, // Fade out VS text when match ends
+        opacity: isEvaluating ? 1 : 0.2,
         transition: 'opacity 1s ease'
       }}>
         <h1 style={{ 
@@ -397,60 +422,75 @@ export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
         ) : null}
       </div>
 
-      {/* Clash Explosion & Shockwave (Only when fighting) */}
-      {isCombatActive && (
-        <>
+      {/* Projectiles & Global Effects */}
+      <AnimatePresence>
+        {combatAction === 'clash' && isEvaluating && (
           <motion.div
+            key="clash-explosion"
             style={{
               position: 'absolute',
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
               zIndex: 15,
-              width: '150px',
-              height: '150px',
+              width: '200px',
+              height: '200px',
               borderRadius: '50%',
               background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(251,191,36,0.8) 40%, rgba(251,191,36,0) 80%)',
               mixBlendMode: 'screen'
             }}
-            animate={{
-              scale: [0, 0, 1.5, 0],
-              opacity: [0, 0, 1, 0]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              times: [0, 0.38, 0.4, 0.6] // Explosion exactly at impact (0.4s)
-            }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, times: [0, 0.5, 1], delay: 0.3 }} // Delay slightly for impact
           />
-          
+        )}
+
+        {combatAction === 'laser' && isEvaluating && (
           <motion.div
+            key="laser-beam"
             style={{
               position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
+              top: '55%',
+              left: '25%', // Start near Tool 1
+              height: '10px',
+              background: '#fff',
+              boxShadow: '0 0 20px 10px #3b82f6',
+              borderRadius: '5px',
               zIndex: 14,
-              width: '200px',
-              height: '200px',
-              borderRadius: '50%',
-              border: '4px solid #fff',
-              boxShadow: '0 0 20px #fbbf24, inset 0 0 20px #fbbf24'
+              transformOrigin: 'left center'
             }}
-            animate={{
-              scale: [0, 0, 1, 2],
-              opacity: [0, 0, 1, 0]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              times: [0, 0.38, 0.4, 0.7]
-            }}
+            initial={{ width: 0, opacity: 1 }}
+            animate={{ width: ['0%', '50%', '0%'], x: ['0%', '0%', '100%'] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           />
-        </>
-      )}
+        )}
 
-      {/* Finishing Slash Effect */}
+        {combatAction === 'slash' && isEvaluating && (
+          <motion.div
+            key="crescent-slash"
+            style={{
+              position: 'absolute',
+              top: '40%',
+              right: '25%', // Start near Tool 2
+              width: '60px',
+              height: '120px',
+              borderRight: '15px solid #fff',
+              borderTopRightRadius: '100px',
+              borderBottomRightRadius: '100px',
+              filter: 'drop-shadow(0 0 15px #ef4444)',
+              zIndex: 14,
+            }}
+            initial={{ x: 0, scale: 0.5, opacity: 0, rotate: 180 }}
+            animate={{ x: -400, scale: 1.5, opacity: [0, 1, 1, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: "linear" }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Finishing Slash Effect (Global) */}
       {phase === 'finishing' && (
         <motion.div
           style={{
@@ -466,13 +506,13 @@ export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
           }}
           initial={{ scaleX: 0, opacity: 1, rotate: winnerId === tool1.id ? 30 : -30, x: '-50%', y: '-50%' }}
           animate={{ scaleX: [0, 1, 0], opacity: [1, 1, 0] }}
-          transition={{ duration: 0.5, delay: 0.4 }} // Triggers when the winner dashes through
+          transition={{ duration: 0.5, delay: 0.4 }} 
         />
       )}
 
       {/* Player 1 */}
       <div style={{ paddingBottom: '60px', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <FloatingMech tool={tool1} isLeft={true} state={state1} />
+        <FloatingMech tool={tool1} isLeft={true} state={state1} action={combatAction} />
         <motion.div 
           style={{ 
             marginTop: '1.5rem', fontWeight: 900, fontSize: '1.2rem', 
@@ -486,7 +526,7 @@ export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
 
       {/* Player 2 */}
       <div style={{ paddingBottom: '60px', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <FloatingMech tool={tool2} isLeft={false} state={state2} />
+        <FloatingMech tool={tool2} isLeft={false} state={state2} action={combatAction} />
         <motion.div 
           style={{ 
             marginTop: '1.5rem', fontWeight: 900, fontSize: '1.2rem', 
@@ -497,6 +537,6 @@ export default function BattleArena({ tool1, tool2, isEvaluating, winnerId }) {
           {tool2.title || tool2.name}
         </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 }
