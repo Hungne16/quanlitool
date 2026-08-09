@@ -52,7 +52,7 @@ BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm ma
   ]
 }`;
 
-    const aiText = await executeWithKeyRotation(prompt, null, "gemini-3.5-flash");
+    const aiText = await executeWithKeyRotation(prompt, null, "gemini-1.5-flash");
 
     // Nếu thành công thì mới tính là 1 lượt dùng
     userRecord.count += 1;

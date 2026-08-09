@@ -159,7 +159,7 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
   "confidence": 90
 }`;
 
-    const aiText = await executeWithKeyRotation(prompt, clientApiKey, "gemini-3.5-flash");
+    const aiText = await executeWithKeyRotation(prompt, clientApiKey, "gemini-1.5-flash");
     
     let resultJson = {};
     try {
