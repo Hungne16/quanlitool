@@ -26,10 +26,10 @@ export function getAvailableApiKeys(clientApiKey) {
  * Executes a Gemini prompt with automatic API key rotation on Quota Exceeded (429) errors.
  * @param {string} prompt - The prompt to send to Gemini
  * @param {string} clientApiKey - Optional client-provided API key
- * @param {string} model - The model to use (default: gemini-1.5-flash)
+ * @param {string} model - The model to use (default: gemini-3.6-flash)
  * @returns {Promise<string>} The output text from Gemini
  */
-export async function executeWithKeyRotation(prompt, clientApiKey = null, model = "gemini-1.5-flash") {
+export async function executeWithKeyRotation(prompt, clientApiKey = null, model = "gemini-3.6-flash") {
   const keysToTry = getAvailableApiKeys(clientApiKey);
   
   if (keysToTry.length === 0) {
@@ -49,16 +49,16 @@ export async function executeWithKeyRotation(prompt, clientApiKey = null, model 
       
       const aiClient = new GoogleGenAI({ apiKey: currentKey });
       
-      const response = await aiClient.models.generateContent({
+      const interaction = await aiClient.interactions.create({
         model: model,
-        contents: prompt
+        input: prompt
       });
       
       if (i > 0) {
         console.log(`[gemini] Successfully generated response using fallback Key ${i + 1}!`);
       }
       
-      return response.text;
+      return interaction.output_text;
       
     } catch (error) {
       lastError = error;

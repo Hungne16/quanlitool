@@ -46,7 +46,7 @@ BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm ma
 
     res.status(200).json(resultJson);
   } catch (error) {
-    console.error('Comparison API Error:', error);
+    console.error('Comparison API Error:', error, 'aiText:', typeof aiText !== 'undefined' ? aiText : 'N/A');
     res.status(500).json({ error: error.message || 'Lỗi máy chủ khi gọi AI' });
   }
 }
