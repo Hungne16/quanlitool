@@ -27,35 +27,35 @@ const FloatingMech = ({ tool, isLeft, state }) => {
       }}
       animate={
         isFighting ? {
-          x: isLeft ? [0, 100, -30, 0] : [0, -100, 30, 0],
-          y: [0, -20, 10, 0],
-          rotate: isLeft ? [0, 15, -5, 0] : [0, -15, 5, 0],
+          x: isLeft ? [0, 100, -30, 10, -5, 0] : [0, -100, 30, -10, 5, 0],
+          y: [0, -20, 10, -5, 5, 0],
+          rotate: isLeft ? [0, 15, -5, 5, -2, 0] : [0, -15, 5, -5, 2, 0],
           opacity: 1,
           scale: 1
         } : isFinishingWinner ? {
-          x: isLeft ? [0, -40, 250] : [0, 40, -250], // Anime dash past enemy
+          x: isLeft ? [0, -40, 300] : [0, 40, -300], // Dash past enemy
           y: [0, -20, 0],
           rotate: isLeft ? [0, -15, 45] : [0, 15, -45], // Lean into attack
           scale: 1.3,
           opacity: 1
         } : isFinishingLoser ? {
-          x: isLeft ? [0, 10, -100] : [0, -10, 100], // Knocked back
-          y: [0, -20, 50],
-          rotate: isLeft ? [0, 45, -180] : [0, -45, 180], // Spin out of control
-          scale: [1, 1.2, 0.5],
+          x: isLeft ? [0, 20, -150] : [0, -20, 150], // Knocked back harder
+          y: [0, -20, 80],
+          rotate: isLeft ? [0, 45, -720] : [0, -45, 720], // Violent spin
+          scale: [1, 1.5, 0], // Swell then explode
           opacity: [1, 1, 0]
         } : isVictory ? {
-          x: isLeft ? 100 : -100, // Move to center
-          y: -20, // Lowered from -50 to avoid clipping
+          x: isLeft ? 220 : -220, // Move closer to exact center
+          y: 0, // Keep lower to avoid clipping the crown
           rotate: 0,
-          scale: 1.2, // Slightly smaller to fit sword
+          scale: 1.1,
           opacity: 1
         } : { // defeat
-          x: isLeft ? -50 : 50,
-          y: 100, // Fall down
-          rotate: isLeft ? -90 : 90, // Fall over
+          x: isLeft ? -100 : 100,
+          y: 50,
+          rotate: isLeft ? -90 : 90,
           opacity: 0,
-          scale: 0.5
+          scale: 0
         }
       }
       transition={
@@ -90,8 +90,8 @@ const FloatingMech = ({ tool, isLeft, state }) => {
           zIndex: 5,
           position: 'relative'
         }}
-        animate={isFighting ? { y: [0, -5, 0, 5, 0] } : { y: 0 }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        animate={isFighting ? { y: [0, -5, 0, 5, 0], rotate: [-2, 2, -2] } : { y: 0, rotate: 0 }}
+        transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut" }}
       >
         {tool.imageUrl ? (
           <img src={tool.imageUrl} alt={tool.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -100,25 +100,49 @@ const FloatingMech = ({ tool, isLeft, state }) => {
         )}
       </motion.div>
 
+      {/* Explosion Effect when losing */}
+      {isFinishingLoser && (
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '150px',
+            height: '150px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, #fff 0%, #ef4444 40%, transparent 80%)',
+            mixBlendMode: 'screen',
+            zIndex: 20
+          }}
+          initial={{ scale: 0, opacity: 1 }}
+          animate={{ scale: [0, 2, 3], opacity: [1, 1, 0] }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        />
+      )}
+
       {/* Victory Crown */}
       <motion.div
         style={{
           position: 'absolute',
-          top: '-35px',
+          top: '-45px',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 10,
           color: '#fbbf24',
-          filter: 'drop-shadow(0 0 10px #fbbf24)'
+          filter: 'drop-shadow(0 0 15px #fbbf24)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
         }}
         animate={{
           opacity: isVictory ? 1 : 0,
-          y: isVictory ? [10, 0] : 0,
-          scale: isVictory ? [0.5, 1.2, 1] : 0.5
+          y: isVictory ? [20, -5, 0] : 0,
+          scale: isVictory ? [0, 1.5, 1.2] : 0
         }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.8, delay: 0.3, type: "spring" }}
       >
-        <Crown size={40} fill="#fbbf24" strokeWidth={1.5} />
+        <Crown size={48} fill="#fbbf24" strokeWidth={1.5} />
       </motion.div>
 
       {/* Floating Hand & Sword (Only if not defeated) */}

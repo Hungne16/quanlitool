@@ -91,7 +91,7 @@ export default function ComparisonModal({ isOpen, onClose, tools }) {
             <X size={20} />
           </button>
 
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: tools.length === 2 ? '1rem' : '2rem', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: tools.length === 2 ? '1rem' : '2rem', textAlign: 'center', color: 'var(--text-primary)' }}>
             So sánh Công cụ
           </h2>
 
@@ -123,7 +123,7 @@ export default function ComparisonModal({ isOpen, onClose, tools }) {
                     <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Phán quyết của Trọng tài AI</h3>
                   </div>
 
-                  <p style={{ fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '2rem', fontWeight: 500 }}>
+                  <p style={{ fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '2rem', fontWeight: 500, color: 'var(--text-primary)' }}>
                     {verdictData.verdict}
                   </p>
 
@@ -135,7 +135,7 @@ export default function ComparisonModal({ isOpen, onClose, tools }) {
                       </h4>
                       <div style={{ marginBottom: '1rem' }}>
                         <strong style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>Ưu điểm:</strong>
-                        <ul style={{ paddingLeft: '1.5rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <ul style={{ paddingLeft: '1.5rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem', color: 'var(--text-primary)' }}>
                           {(verdictData.prosA || []).map((pro, idx) => <li key={idx}>{pro}</li>)}
                         </ul>
                       </div>
@@ -154,7 +154,7 @@ export default function ComparisonModal({ isOpen, onClose, tools }) {
                       </h4>
                       <div style={{ marginBottom: '1rem' }}>
                         <strong style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>Ưu điểm:</strong>
-                        <ul style={{ paddingLeft: '1.5rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <ul style={{ paddingLeft: '1.5rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem', color: 'var(--text-primary)' }}>
                           {(verdictData.prosB || []).map((pro, idx) => <li key={idx}>{pro}</li>)}
                         </ul>
                       </div>
@@ -187,16 +187,16 @@ export default function ComparisonModal({ isOpen, onClose, tools }) {
                 ) : (
                   <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: 'var(--surface-active)', margin: '0 auto 1rem auto' }} />
                 )}
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>{tool.title || tool.name}</h3>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{tool.title || tool.name}</h3>
               </div>
             ))}
 
             {/* Ratings */}
-            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 500 }}>Đánh giá</div>
+            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 600, color: 'var(--text-secondary)' }}>Đánh giá</div>
             {tools.map(tool => (
               <div key={`rating-${tool.id}`} style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
                 <Star size={16} color="#eab308" fill="#eab308" />
-                <span style={{ fontWeight: 600 }}>{tool.rating ? tool.rating.toFixed(1) : '4.5'}</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{tool.rating ? tool.rating.toFixed(1) : '4.5'}</span>
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                   ({tool.ratingCount || Math.floor(Math.random() * 100 + 10)})
                 </span>
@@ -204,29 +204,29 @@ export default function ComparisonModal({ isOpen, onClose, tools }) {
             ))}
 
             {/* Category */}
-            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 500 }}>Danh mục</div>
+            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 600, color: 'var(--text-secondary)' }}>Danh mục</div>
             {tools.map(tool => (
               <div key={`cat-${tool.id}`} style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>
-                <span style={{ background: 'var(--surface-color)', padding: '0.25rem 0.75rem', borderRadius: '100px', fontSize: '0.85rem' }}>
+                <span style={{ background: 'var(--surface-color)', color: 'var(--text-primary)', padding: '0.25rem 0.75rem', borderRadius: '100px', fontSize: '0.85rem' }}>
                   {tool.category || 'Khác'}
                 </span>
               </div>
             ))}
 
             {/* Price */}
-            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 500 }}>Mô hình giá</div>
+            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 600, color: 'var(--text-secondary)' }}>Mô hình giá</div>
             {tools.map(tool => {
               const prices = ['Miễn phí', 'Freemium', 'Trả phí'];
               const randomPrice = prices[Math.floor(Math.random() * prices.length)];
               return (
-                <div key={`price-${tool.id}`} style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center', fontWeight: 600 }}>
+                <div key={`price-${tool.id}`} style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center', fontWeight: 600, color: 'var(--text-primary)' }}>
                   {randomPrice}
                 </div>
               );
             })}
 
             {/* Description */}
-            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 500 }}>Mô tả ngắn</div>
+            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 600, color: 'var(--text-secondary)' }}>Mô tả ngắn</div>
             {tools.map(tool => (
               <div key={`desc-${tool.id}`} style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {tool.description}
