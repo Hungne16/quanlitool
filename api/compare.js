@@ -1,4 +1,4 @@
-import { executeWithKeyRotation } from './utils/gemini.js';
+﻿import { executeWithKeyRotation } from './utils/gemini.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -33,7 +33,7 @@ BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm ma
   "verdict": "Lời bình luận cuối cùng giải thích tại sao công cụ chiến thắng lại tốt hơn (khoảng 2-3 câu)."
 }`;
 
-    const aiText = await executeWithKeyRotation(prompt, null, "gemini-3.6-flash");
+    const aiText = await executeWithKeyRotation(prompt, null, "gemini-3.5-flash");
     
     let resultJson;
     if (!aiText) {

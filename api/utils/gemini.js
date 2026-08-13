@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+﻿import { GoogleGenAI } from '@google/genai';
 
 /**
  * Extracts and prepares all available API keys from environment and client.
@@ -26,10 +26,10 @@ export function getAvailableApiKeys(clientApiKey) {
  * Executes a Gemini prompt with automatic API key rotation on Quota Exceeded (429) errors.
  * @param {string} prompt - The prompt to send to Gemini
  * @param {string} clientApiKey - Optional client-provided API key
- * @param {string} model - The model to use (default: gemini-3.6-flash)
+ * @param {string} model - The model to use (default: gemini-3.5-flash)
  * @returns {Promise<string>} The output text from Gemini
  */
-export async function executeWithKeyRotation(prompt, clientApiKey = null, model = "gemini-3.6-flash") {
+export async function executeWithKeyRotation(prompt, clientApiKey = null, model = "gemini-3.5-flash") {
   const keysToTry = getAvailableApiKeys(clientApiKey);
   
   if (keysToTry.length === 0) {

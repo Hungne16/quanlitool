@@ -1,4 +1,4 @@
-import { executeWithKeyRotation } from './utils/gemini.js';
+﻿import { executeWithKeyRotation } from './utils/gemini.js';
 
 // In-memory rate limiting map (resets on Vercel cold starts, but enough for basic spam prevention)
 const rateLimitMap = new Map();
@@ -52,7 +52,7 @@ BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm ma
   ]
 }`;
 
-    const aiText = await executeWithKeyRotation(prompt, null, "gemini-3.6-flash");
+    const aiText = await executeWithKeyRotation(prompt, null, "gemini-3.5-flash");
 
     // Nếu thành công thì mới tính là 1 lượt dùng
     userRecord.count += 1;

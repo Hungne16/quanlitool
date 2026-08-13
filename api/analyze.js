@@ -1,4 +1,4 @@
-import { executeWithKeyRotation } from './utils/gemini.js';
+﻿import { executeWithKeyRotation } from './utils/gemini.js';
 import { Crawl4AI } from 'crawl4ai';
 import * as cheerio from 'cheerio';
 
@@ -159,7 +159,7 @@ Trả về ĐÚNG VÀ CHỈ JSON theo cấu trúc sau, không kèm markdown, kh�
   "confidence": 90
 }`;
 
-    const aiText = await executeWithKeyRotation(prompt, clientApiKey, "gemini-1.5-flash");
+    const aiText = await executeWithKeyRotation(prompt, clientApiKey, "gemini-3.5-flash");
     
     let resultJson = {};
     try {

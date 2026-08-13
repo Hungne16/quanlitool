@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, User, Loader2 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
@@ -62,7 +62,7 @@ BẮT BUỘC trả về ĐÚNG VÀ CHỈ định dạng JSON sau (không kèm ma
         // 1. Nếu người dùng có nhập API Key cá nhân, dùng trực tiếp luôn để khỏi tốn lượt Server
         const client = new GoogleGenAI({ apiKey: localApiKey });
         const interaction = await client.interactions.create({
-            model: "gemini-3.6-flash",
+            model: "gemini-3.5-flash",
             input: prompt
         });
         replyText = interaction.output_text;
