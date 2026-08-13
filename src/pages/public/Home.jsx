@@ -56,6 +56,15 @@ export default function Home() {
 
   const handleAddTool = async (newTool) => {
     try {
+      // Duplicate check based on tool title
+      const isDuplicate = tools.some(
+        (tool) => tool.title.toLowerCase() === newTool.title.toLowerCase()
+      );
+      if (isDuplicate) {
+        alert('Công cụ này đã tồn tại trong hệ thống!');
+        return;
+      }
+
       const toolWithUser = {
         ...newTool,
         submittedBy: user?.uid || 'guest',
