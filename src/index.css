@@ -957,3 +957,14 @@ select.input-control {
 .dark { --bg-admin: #1e1e2d; } 
 .tool-action-btn:hover { max-width: 120px !important; }
 .tool-action-btn:hover .btn-text { opacity: 1 !important; }
+/* Admin overrides */
+.admin-layout {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --surface-color: #f1f5f9;
+  --surface-hover: #e2e8f0;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+}
