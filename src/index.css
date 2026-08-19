@@ -538,7 +538,7 @@ body {
   font-weight: 500;
 }
 .input-control {
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--surface-active);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   padding: 0.75rem 1rem;
@@ -716,7 +716,7 @@ select.input-control {
 }
 .chat-input {
   flex: 1;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--surface-active);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   padding: 0.75rem 1rem;
@@ -961,6 +961,8 @@ select.input-control {
 .admin-layout {
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-color: #f6f8fb;
   --surface-color: #f1f5f9;
   --surface-hover: #e2e8f0;
   --border-color: #e2e8f0;
